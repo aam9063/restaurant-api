@@ -1,0 +1,60 @@
+security:
+    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+
+    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+            
+        api_docs:
+            pattern: ^/api/docs
+            security: false
+            
+        api_auth:
+            pattern: ^/api/auth
+            security: false
+            
+        api:
+            pattern: ^/api
+            stateless: false
+            custom_authenticators:
+                - App\Security\ApiKeyAuthenticator
+            user_checker: App\Security\UserChecker
+            remember_me:
+                secret: '%env(APP_SECRET)%'
+                lifetime: 604800 # 1 week
+                secure: true
+                httponly: true
+                samesite: lax
+                
+        main:
+            lazy: true
+            provider: app_user_provider
+            stateless: false
+            custom_authenticators:
+                - App\Security\ApiKeyAuthenticator
+            remember_me:
+                secret: '%env(APP_SECRET)%'
+                lifetime: 604800
+                secure: true
+                httponly: true
+                samesite: lax
+
+    # Easy way to control access for large sections of your site
+    # Note: Only the *first* access control that matches will be used
+    access_control:
+        - { path: ^/api/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: ROLE_USER }
+
+    role_hierarchy:
+        ROLE_ADMIN: ROLE_USER 

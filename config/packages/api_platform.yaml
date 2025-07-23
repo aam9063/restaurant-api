@@ -1,0 +1,57 @@
+api_platform:
+    title: 'Restaurant API'
+    version: '1.0.0'
+    description: 'API RESTful para gestión de restaurantes - Prueba técnica backend'
+    
+    # Configuración de documentación
+    docs_formats:
+        jsonopenapi: ['application/vnd.openapi+json']
+        jsonld: ['application/ld+json']
+        jsonhal: ['application/hal+json']
+        jsonapi: ['application/vnd.api+json']
+        xml: ['application/xml', 'text/xml']
+        yaml: ['application/x-yaml']
+        csv: ['text/csv']
+        html: ['text/html']
+    
+    # Configuración de formatos soportados
+    formats:
+        json: ['application/json']
+        jsonld: ['application/ld+json']
+        html: ['text/html']
+        xml: ['application/xml', 'text/xml']
+        
+    # Configuración de paginación por defecto
+    defaults:
+        pagination_enabled: true
+        pagination_items_per_page: 10
+        pagination_maximum_items_per_page: 100
+        pagination_page_parameter_name: 'page'
+        pagination_items_per_page_parameter_name: 'itemsPerPage'
+        
+    # Configuración de recursos
+    mapping:
+        paths: ['%kernel.project_dir%/src/Entity']
+        
+    # Configuración de OpenAPI
+    openapi:
+        contact:
+            name: 'API Support'
+            email: 'support@restaurantapi.local'
+        license:
+            name: 'MIT'
+        swagger_ui_extra_configuration:
+            tryItOutEnabled: true
+            filter: true
+            displayRequestDuration: true
+            persistAuthorization: true
+            
+    # Configuración de Swagger UI
+    swagger:
+        api_keys:
+            apiKey:
+                name: X-API-KEY
+                type: header
+            bearer:
+                name: Authorization
+                type: header 

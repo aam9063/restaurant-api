@@ -1,0 +1,25 @@
+framework:
+    rate_limiter:
+        # Rate limiter general para API
+        api:
+            policy: 'token_bucket'
+            limit: 100
+            interval: '1 hour'
+            
+        # Rate limiter más estricto para autenticación
+        auth:
+            policy: 'token_bucket'
+            limit: 10
+            interval: '15 minutes'
+            
+        # Rate limiter para operaciones de escritura
+        write_operations:
+            policy: 'token_bucket'
+            limit: 30
+            interval: '1 hour'
+            
+        # Rate limiter para registro de usuarios
+        user_registration:
+            policy: 'token_bucket'
+            limit: 3
+            interval: '1 hour' 

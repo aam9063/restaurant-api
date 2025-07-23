@@ -1,0 +1,117 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Restaurant API
+            description: API RESTful para gestión de restaurantes - Prueba técnica backend
+            version: 1.0.0
+            contact:
+                name: API Support
+                email: support@restaurantapi.local
+        servers:
+            - url: http://localhost:8080
+              description: Servidor de desarrollo
+        components:
+            securitySchemes:
+                ApiKeyAuth:
+                    type: apiKey
+                    in: header
+                    name: X-API-KEY
+                    description: API Key para autenticación
+                BearerAuth:
+                    type: http
+                    scheme: bearer
+                    description: Token Bearer en header Authorization
+            schemas:
+                Error:
+                    type: object
+                    properties:
+                        error:
+                            type: boolean
+                            example: true
+                        code:
+                            type: integer
+                            example: 400
+                        message:
+                            type: string
+                            example: "Bad Request"
+                        details:
+                            type: string
+                            example: "Descripción detallada del error"
+                        timestamp:
+                            type: string
+                            format: date-time
+                            example: "2024-01-15 10:30:45"
+        security:
+            - ApiKeyAuth: []
+            - BearerAuth: []
+        paths:
+            /api/auth/login:
+                post:
+                    tags: [Authentication]
+                    summary: Iniciar sesión
+                    description: Autentica un usuario y devuelve su API Key
+                    security: []
+                    requestBody:
+                        required: true
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    required: [email]
+                                    properties:
+                                        email:
+                                            type: string
+                                            format: email
+                                            example: "usuario@ejemplo.com"
+                    responses:
+                        '200':
+                            description: Login exitoso
+                        '400':
+                            description: Datos faltantes o incorrectos
+                            content:
+                                application/json:
+                                    schema:
+                                        $ref: '#/components/schemas/Error'
+            /api/auth/register:
+                post:
+                    tags: [Authentication]
+                    summary: Registrar nuevo usuario
+                    description: Crea un nuevo usuario en el sistema
+                    security: []
+                    requestBody:
+                        required: true
+                        content:
+                            application/json:
+                                schema:
+                                    type: object
+                                    required: [email, name]
+                                    properties:
+                                        email:
+                                            type: string
+                                            format: email
+                                            example: "nuevo@ejemplo.com"
+                                        name:
+                                            type: string
+                                            example: "Nombre Usuario"
+                                        roles:
+                                            type: array
+                                            items:
+                                                type: string
+                                            example: ["ROLE_USER"]
+                    responses:
+                        '201':
+                            description: Usuario creado exitosamente
+                        '400':
+                            description: Error de validación
+                            content:
+                                application/json:
+                                    schema:
+                                        $ref: '#/components/schemas/Error'
+    areas:
+        path_patterns:
+            - ^/api(?!/doc$)
+        host_patterns: []
+    models:
+        names:
+            - { alias: Restaurant, type: App\Entity\Restaurant, groups: [restaurant:read] }
+            - { alias: User, type: App\Entity\User, groups: [user:read] } 
