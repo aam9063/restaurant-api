@@ -17,10 +17,13 @@ API RESTful para la gestión de restaurantes desarrollada como prueba técnica b
 - 📚 **Documentación Automática** con Swagger UI
 - 🐳 **Dockerización** completa con Docker Compose
 - 🛡️ **Validaciones** robustas en entidades
-- 🚀 **Rate Limiting** para seguridad
+- 🚀 **Rate Limiting Inteligente** por usuario/IP con límites diferenciados
+- 🔍 **Búsqueda Avanzada** con múltiples filtros y ordenamiento
 - 🔄 **CORS** configurado para frontends
 - 📊 **Paginación** automática en listados
 - 🎨 **Gestión de Errores** centralizada
+- 📈 **Estadísticas** y métricas del sistema
+- ⚡ **Búsqueda Rápida** para autocompletado
 
 ---
 
@@ -306,7 +309,8 @@ backend/
 │   ├── Controller/       # Controladores
 │   ├── Entity/          # Entidades Doctrine
 │   ├── Repository/      # Repositorios
-│   └── Security/        # Autenticación personalizada
+│   ├── Security/        # Autenticación personalizada
+│   └── EventListener/   # Event listeners (Rate limiting, etc.)
 ├── templates/           # Plantillas Twig
 ├── docker/             # Configuración Docker
 ├── var/               # Cache y logs
@@ -340,6 +344,50 @@ class User implements UserInterface
     private bool $isActive = true;       // Estado del usuario
     private ?\DateTimeImmutable $createdAt = null;
     private ?\DateTimeImmutable $updatedAt = null;
+}
+```
+
+---
+
+## 🚫 Rate Limiting Inteligente
+
+### Sistema de Rate Limiting por Usuario/IP
+
+La API implementa un sistema de rate limiting inteligente que aplica diferentes límites según el tipo de usuario y operación:
+
+#### Límites Configurados
+
+| Tipo de Usuario/Operación | Límite | Intervalo | Descripción |
+|---------------------------|--------|-----------|-------------|
+| **Login por IP** | 10 requests | 15 minutos | Previene ataques de fuerza bruta |
+| **Registro por IP** | 5 requests | 1 hora | Previene spam de registros |
+| **Operaciones de escritura** | 30 requests | 10 minutos | POST, PUT, PATCH, DELETE |
+| **Usuario autenticado** | 200 requests | 1 hora | Límite general más permisivo |
+| **Usuario anónimo** | 50 requests | 1 hora | Límite general más estricto |
+
+#### Headers de Rate Limiting
+
+Todas las respuestas incluyen headers informativos:
+
+```http
+X-RateLimit-Limit: 200
+X-RateLimit-Remaining: 195
+X-RateLimit-Type: authenticated_user
+X-RateLimit-Policy: 200 requests per hour
+Retry-After: 3600 (cuando se excede el límite)
+```
+
+#### Respuesta cuando se excede el límite
+
+```json
+{
+  "error": true,
+  "code": 429,
+  "message": "Rate limit exceeded",
+  "details": "Too many requests. Limit: 200 requests per hour for authenticated_user. Try again in 3600 seconds.",
+  "limit_type": "authenticated_user",
+  "retry_after": 1642284845,
+  "timestamp": "2024-01-15 10:30:45"
 }
 ```
 
@@ -456,7 +504,7 @@ Cerrar sesión y eliminar cookies.
 
 ---
 
-### 🍽️ Endpoints de Restaurantes
+### 🍽️ Endpoints de Restaurantes CRUD
 
 Todos los endpoints de restaurantes requieren autenticación con `X-API-KEY`.
 
@@ -600,6 +648,159 @@ X-API-KEY: your_api_key_here
 
 ---
 
+### 🔍 Endpoints de Búsqueda Avanzada
+
+#### GET `/api/restaurants/search` 🔒
+Búsqueda avanzada con múltiples filtros y paginación.
+
+**Query Parameters:**
+- `search`: Búsqueda general en nombre, dirección y teléfono
+- `name`: Filtro específico por nombre del restaurante
+- `address`: Filtro específico por dirección
+- `phone`: Filtro específico por teléfono
+- `created_from`: Fecha de creación desde (YYYY-MM-DD)
+- `created_to`: Fecha de creación hasta (YYYY-MM-DD)
+- `updated_from`: Fecha de actualización desde (YYYY-MM-DD)
+- `updated_to`: Fecha de actualización hasta (YYYY-MM-DD)
+- `order_by`: Campo de ordenamiento (name, address, phone, created_at, updated_at)
+- `order_direction`: Dirección del ordenamiento (ASC, DESC)
+- `page`: Número de página para paginación
+- `limit`: Número de resultados por página (max 100)
+
+**Headers:**
+```
+X-API-KEY: your_api_key_here
+```
+
+**Ejemplo de uso:**
+```bash
+GET /api/restaurants/search?search=pizza&order_by=created_at&order_direction=DESC&page=1&limit=10
+```
+
+**Response (200):**
+```json
+{
+  "results": [
+    {
+      "id": 1,
+      "name": "Pizzería Napolitana",
+      "address": "Calle Roma 145, Centro Histórico",
+      "phone": "555-0101",
+      "created_at": "2024-01-15T10:30:45+00:00",
+      "updated_at": "2024-01-15T10:30:45+00:00"
+    }
+  ],
+  "pagination": {
+    "total": 25,
+    "page": 1,
+    "limit": 10,
+    "pages": 3
+  },
+  "filters_applied": {
+    "search": "pizza",
+    "order_by": "created_at",
+    "order_direction": "DESC"
+  }
+}
+```
+
+#### GET `/api/restaurants/{id}/similar` 🔒
+Encontrar restaurantes similares basado en nombre y dirección.
+
+**Query Parameters:**
+- `limit`: Número máximo de resultados similares (max 20, default 5)
+
+**Headers:**
+```
+X-API-KEY: your_api_key_here
+```
+
+**Response (200):**
+```json
+{
+  "reference_restaurant": {
+    "id": 1,
+    "name": "Pizzería Napolitana",
+    "address": "Calle Roma 145, Centro Histórico",
+    "phone": "555-0101",
+    "created_at": "2024-01-15T10:30:45+00:00",
+    "updated_at": "2024-01-15T10:30:45+00:00"
+  },
+  "similar_restaurants": [
+    {
+      "id": 5,
+      "name": "Pizzería Romana",
+      "address": "Avenida Centro 890",
+      "phone": "555-0505",
+      "created_at": "2024-01-16T14:20:30+00:00",
+      "updated_at": "2024-01-16T14:20:30+00:00"
+    }
+  ],
+  "count": 1
+}
+```
+
+#### GET `/api/restaurants/statistics` 🔒
+Obtener estadísticas generales sobre los restaurantes.
+
+**Headers:**
+```
+X-API-KEY: your_api_key_here
+```
+
+**Response (200):**
+```json
+{
+  "total": 150,
+  "created_today": 3,
+  "created_this_week": 12,
+  "created_this_month": 45,
+  "average_per_day": 1.5,
+  "generated_at": "2024-01-15T10:30:45Z"
+}
+```
+
+#### GET `/api/restaurants/quick-search` 🔒
+Búsqueda rápida para autocompletado (sin paginación).
+
+**Query Parameters:**
+- `q`: Término de búsqueda rápida (mínimo 2 caracteres)
+- `limit`: Número máximo de resultados (max 50, default 10)
+
+**Headers:**
+```
+X-API-KEY: your_api_key_here
+```
+
+**Ejemplo de uso:**
+```bash
+GET /api/restaurants/quick-search?q=pizza&limit=5
+```
+
+**Response (200):**
+```json
+{
+  "results": [
+    {
+      "id": 1,
+      "name": "Pizzería Napolitana",
+      "address": "Calle Roma 145",
+      "phone": "555-0101"
+    },
+    {
+      "id": 5,
+      "name": "Pizza Palace",
+      "address": "Avenida Central 890",
+      "phone": "555-0505"
+    }
+  ],
+  "count": 2,
+  "query": "pizza"
+}
+```
+
+---
+
 ### 👥 Endpoints de Usuarios
 
 #### GET `/api/users` 🔒
@@ -674,6 +875,8 @@ La documentación incluye:
 - Ejemplos de request/response
 - Validaciones documentadas
 - Botón "Authorize" para testing
+- **Sección "Restaurant Search"** con endpoints de búsqueda avanzada
+- **Sección "Authentication"** con endpoints de autenticación
 
 ---
 
@@ -685,6 +888,8 @@ La documentación incluye:
 **API Key:** `58437522a95dd2c7be83c4a87d172f9fe680f5aefae082345747f9bfbc68a52c`
 
 ### Ejemplos con cURL
+
+#### Operaciones CRUD Básicas
 
 ```bash
 # Login y obtener API Key
@@ -713,11 +918,54 @@ curl -X DELETE http://localhost:8080/api/restaurants/1 \
      -H "X-API-KEY: your_api_key"
 ```
 
+#### Búsqueda Avanzada
+
+```bash
+# Búsqueda general por texto
+curl -H "X-API-KEY: your_api_key" \
+     "http://localhost:8080/api/restaurants/search?search=pizza"
+
+# Búsqueda con filtros específicos
+curl -H "X-API-KEY: your_api_key" \
+     "http://localhost:8080/api/restaurants/search?name=pizz&address=centro&order_by=created_at&order_direction=DESC"
+
+# Búsqueda por rango de fechas
+curl -H "X-API-KEY: your_api_key" \
+     "http://localhost:8080/api/restaurants/search?created_from=2024-01-01&created_to=2024-01-31"
+
+# Búsqueda rápida para autocompletado
+curl -H "X-API-KEY: your_api_key" \
+     "http://localhost:8080/api/restaurants/quick-search?q=burger&limit=5"
+
+# Restaurantes similares
+curl -H "X-API-KEY: your_api_key" \
+     "http://localhost:8080/api/restaurants/1/similar?limit=3"
+
+# Estadísticas del sistema
+curl -H "X-API-KEY: your_api_key" \
+     "http://localhost:8080/api/restaurants/statistics"
+```
+
+#### Verificar Rate Limiting
+
+```bash
+# Hacer múltiples requests para ver headers de rate limiting
+curl -H "X-API-KEY: your_api_key" \
+     http://localhost:8080/api/restaurants -v
+
+# Los headers mostrarán:
+# X-RateLimit-Limit: 200
+# X-RateLimit-Remaining: 199
+# X-RateLimit-Type: authenticated_user
+# X-RateLimit-Policy: 200 requests per hour
+```
+
 ### Testing con Postman
 
 1. Importar la especificación OpenAPI desde: `http://localhost:8080/api/docs.json`
 2. Configurar la autenticación en la colección
 3. Usar variables de entorno para la API Key
+4. Probar los nuevos endpoints de búsqueda avanzada
 
 ---
 
@@ -731,6 +979,9 @@ docker exec restaurant_api_php php bin/console cache:clear
 
 # Ver rutas disponibles
 docker exec restaurant_api_php php bin/console debug:router
+
+# Ver rutas de búsqueda específicamente
+docker exec restaurant_api_php php bin/console debug:router | grep search
 
 # Crear migración
 docker exec restaurant_api_php php bin/console make:migration
@@ -836,6 +1087,15 @@ docker exec restaurant_api_php composer require symfony/asset
 docker exec restaurant_api_php php bin/console cache:clear
 ```
 
+#### 6. Rate Limiting muy restrictivo
+```bash
+# Verificar configuración en config/packages/rate_limiter.yaml
+# Ajustar límites según necesidades
+
+# Ver estado actual del rate limiting
+curl -H "X-API-KEY: your_api_key" http://localhost:8080/api/restaurants -v
+```
+
 ### Logs y Debugging
 
 ```bash
@@ -854,29 +1114,50 @@ docker exec restaurant_api_nginx tail -f /var/log/nginx/error.log
 
 ## 📈 Mejoras Futuras
 
+### Funcionalidades Completadas ✅
+
+- ✅ **Rate Limiting Inteligente** por usuario/IP con límites diferenciados
+- ✅ **Búsqueda Avanzada** con múltiples filtros y ordenamiento
+- ✅ **Filtros por fechas** de creación y actualización
+- ✅ **Búsqueda rápida** para autocompletado
+- ✅ **Restaurantes similares** basado en nombre/dirección
+- ✅ **Estadísticas** del sistema
+- ✅ **Headers informativos** de rate limiting
+
 ### Funcionalidades Pendientes
 
-- [ ] **Sistema de Roles** más granular
-- [ ] **Rate Limiting** por usuario/IP
-- [ ] **Filtros y Búsqueda** avanzada en restaurantes
 - [ ] **Soft Delete** para restaurantes
-- [ ] **Auditoría** de cambios
-- [ ] **Cache** con Redis
+- [ ] **Auditoría** de cambios con historial
+- [ ] **Cache** con Redis para mejor rendimiento
 - [ ] **Tests Automatizados** (PHPUnit)
-- [ ] **CI/CD Pipeline**
-- [ ] **Métricas** y monitoring
+- [ ] **CI/CD Pipeline** con GitHub Actions
+- [ ] **Métricas** y monitoring con Prometheus
 - [ ] **Backup** automatizado de BD
+- [ ] **Notificaciones** por email/webhook
+- [ ] **Geolocalización** de restaurantes
+- [ ] **Categorías** y tags para restaurantes
 
 ### Optimizaciones
 
-- [ ] **Índices** en base de datos
+- [ ] **Índices** optimizados en base de datos
 - [ ] **Lazy Loading** en relaciones
 - [ ] **Compresión** de respuestas
 - [ ] **CDN** para assets estáticos
 - [ ] **Load Balancing** para alta disponibilidad
+- [ ] **Elasticsearch** para búsquedas complejas
+- [ ] **GraphQL** como alternativa a REST
 
 ---
 
+## 🤝 Contribución
+
+### Cómo Contribuir
+
+1. Fork el proyecto
+2. Crear una rama feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit los cambios (`git commit -am 'Agregar nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Abrir un Pull Request
 
 ### Estándares de Código
 
@@ -892,5 +1173,17 @@ docker exec restaurant_api_nginx tail -f /var/log/nginx/error.log
 Este proyecto está bajo la licencia **MIT**. Ver archivo `LICENSE` para más detalles.
 
 ---
+
+## 📞 Contacto y Soporte
+
+- **Email:** support@restaurantapi.local
+- **Documentación:** http://localhost:8080/api/docs
+- **Issues:** [GitHub Issues](https://github.com/tu-usuario/restaurant-api/issues)
+
+---
+
+## 🎉 ¡Gracias!
+
+Gracias por revisar este proyecto. Si tienes preguntas o sugerencias, no dudes en contactar o abrir un issue.
 
 **¡Happy Coding!** 🚀 

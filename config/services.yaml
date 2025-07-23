@@ -22,3 +22,13 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    
+    # Rate Limiter Services
+    App\EventListener\RateLimitListener:
+        arguments:
+            $apiGeneralLimiter: '@limiter.api_general'
+            $apiWriteOperationsLimiter: '@limiter.api_write_operations'
+            $loginIpLimiter: '@limiter.login_ip'
+            $authenticatedUserLimiter: '@limiter.authenticated_user'
+            $anonymousUserLimiter: '@limiter.anonymous_user'
+            $userRegistrationLimiter: '@limiter.user_registration'

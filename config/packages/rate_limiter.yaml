@@ -1,25 +1,37 @@
 framework:
     rate_limiter:
-        # Rate limiter general para API
-        api:
-            policy: 'token_bucket'
+        # Rate limiting general por IP
+        api_general:
+            policy: 'sliding_window'
             limit: 100
             interval: '1 hour'
             
-        # Rate limiter más estricto para autenticación
-        auth:
-            policy: 'token_bucket'
+        # Rate limiting para operaciones de escritura (POST, PUT, DELETE)
+        api_write_operations:
+            policy: 'sliding_window'
+            limit: 30
+            interval: '10 minutes'
+            
+        # Rate limiting para login por IP
+        login_ip:
+            policy: 'sliding_window'
             limit: 10
             interval: '15 minutes'
             
-        # Rate limiter para operaciones de escritura
-        write_operations:
-            policy: 'token_bucket'
-            limit: 30
+        # Rate limiting para usuarios autenticados (más permisivo)
+        authenticated_user:
+            policy: 'sliding_window'
+            limit: 200
             interval: '1 hour'
             
-        # Rate limiter para registro de usuarios
+        # Rate limiting estricto para usuarios no autenticados
+        anonymous_user:
+            policy: 'sliding_window'
+            limit: 50
+            interval: '1 hour'
+            
+        # Rate limiting para creación de usuarios
         user_registration:
-            policy: 'token_bucket'
-            limit: 3
+            policy: 'sliding_window'
+            limit: 5
             interval: '1 hour' 
