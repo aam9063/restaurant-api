@@ -23,8 +23,13 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
 
     public function supports(Request $request): ?bool
     {
-        // Soportar autenticación para rutas de API
-        return str_starts_with($request->getPathInfo(), '/api');
+        // Verificar si hay headers de autenticación presentes y válidos
+        $authHeader = $request->headers->get('Authorization');
+        $hasValidAuth = $authHeader && str_starts_with($authHeader, 'Bearer ');
+        
+        return $hasValidAuth
+            || $request->headers->has('X-API-KEY')
+            || $request->cookies->has('api_key');
     }
 
     public function authenticate(Request $request): Passport
@@ -32,17 +37,17 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
         $apiKey = $this->getApiKey($request);
         
         if (null === $apiKey) {
-            throw new CustomUserMessageAuthenticationException('API Key no proporcionada');
+            throw new CustomUserMessageAuthenticationException('No API key provided');
         }
 
         $user = $this->userRepository->findByApiKey($apiKey);
         
         if (!$user) {
-            throw new CustomUserMessageAuthenticationException('API Key inválida');
+            throw new CustomUserMessageAuthenticationException('Invalid API key');
         }
 
         if (!$user->isActive()) {
-            throw new CustomUserMessageAuthenticationException('Usuario inactivo');
+            throw new CustomUserMessageAuthenticationException('User inactive');
         }
 
         return new SelfValidatingPassport(new UserBadge($user->getUserIdentifier()));

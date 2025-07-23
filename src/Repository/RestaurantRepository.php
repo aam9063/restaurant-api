@@ -61,13 +61,13 @@ class RestaurantRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('r');
         
-        // Filtro por texto general (busca en nombre, dirección y teléfono)
+        // Filtro por texto general (busca en nombre, dirección y teléfono) - case insensitive
         if (!empty($criteria['search'])) {
             $qb->andWhere(
                 $qb->expr()->orX(
-                    $qb->expr()->like('r.name', ':search'),
-                    $qb->expr()->like('r.address', ':search'),
-                    $qb->expr()->like('r.phone', ':search')
+                    'LOWER(r.name) LIKE LOWER(:search)',
+                    'LOWER(r.address) LIKE LOWER(:search)',
+                    'LOWER(r.phone) LIKE LOWER(:search)'
                 )
             )->setParameter('search', '%' . $criteria['search'] . '%');
         }
@@ -162,13 +162,13 @@ class RestaurantRepository extends ServiceEntityRepository
      */
     private function applyFilters(QueryBuilder $qb, array $criteria): void
     {
-        // Filtro por texto general
+        // Filtro por texto general - case insensitive
         if (!empty($criteria['search'])) {
             $qb->andWhere(
                 $qb->expr()->orX(
-                    $qb->expr()->like('r.name', ':search'),
-                    $qb->expr()->like('r.address', ':search'),
-                    $qb->expr()->like('r.phone', ':search')
+                    'LOWER(r.name) LIKE LOWER(:search)',
+                    'LOWER(r.address) LIKE LOWER(:search)',
+                    'LOWER(r.phone) LIKE LOWER(:search)'
                 )
             )->setParameter('search', '%' . $criteria['search'] . '%');
         }
@@ -258,21 +258,125 @@ class RestaurantRepository extends ServiceEntityRepository
      */
     public function findSimilar(Restaurant $restaurant, int $limit = 5): array
     {
-        return $this->createQueryBuilder('r')
-            ->where('r.id != :id')
-            ->andWhere(
-                $this->createQueryBuilder('r')->expr()->orX(
-                    'r.name LIKE :name',
-                    'r.address LIKE :address'
-                )
-            )
-            ->setParameter('id', $restaurant->getId())
-            ->setParameter('name', '%' . $restaurant->getName() . '%')
-            ->setParameter('address', '%' . $restaurant->getAddress() . '%')
-            ->setMaxResults($limit)
+        $qb = $this->createQueryBuilder('r');
+        
+        // Extraer palabras clave del nombre para búsqueda más flexible
+        $nameWords = explode(' ', strtolower($restaurant->getName()));
+        $namePatterns = [];
+        foreach ($nameWords as $word) {
+            if (strlen($word) > 3) { // Solo palabras de más de 3 caracteres
+                $namePatterns[] = "%{$word}%";
+            }
+        }
+        
+        // Extraer palabras clave de la dirección
+        $addressWords = explode(' ', strtolower($restaurant->getAddress()));
+        $addressPatterns = [];
+        foreach ($addressWords as $word) {
+            if (strlen($word) > 3) {
+                $addressPatterns[] = "%{$word}%";
+            }
+        }
+        
+        $qb->where('r.id != :id')->setParameter('id', $restaurant->getId());
+        
+        if (!empty($namePatterns) || !empty($addressPatterns)) {
+            $orConditions = $qb->expr()->orX();
+            
+            // Buscar por patrones de nombre
+            foreach ($namePatterns as $i => $pattern) {
+                $orConditions->add("LOWER(r.name) LIKE :name_pattern_{$i}");
+                $qb->setParameter("name_pattern_{$i}", $pattern);
+            }
+            
+            // Buscar por patrones de dirección
+            foreach ($addressPatterns as $i => $pattern) {
+                $orConditions->add("LOWER(r.address) LIKE :address_pattern_{$i}");
+                $qb->setParameter("address_pattern_{$i}", $pattern);
+            }
+            
+            $qb->andWhere($orConditions);
+        }
+        
+        return $qb->setMaxResults($limit)
             ->orderBy('r.name', 'ASC')
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Método unificado para búsqueda avanzada con formato consistente
+     */
+    public function findWithAdvancedSearch(
+        ?string $search = null,
+        ?string $name = null,
+        ?string $address = null,
+        ?string $phone = null,
+        ?string $createdFrom = null,
+        ?string $createdTo = null,
+        ?string $updatedFrom = null,
+        ?string $updatedTo = null,
+        ?string $orderBy = 'name',
+        ?string $orderDirection = 'ASC',
+        int $page = 1,
+        int $limit = 10
+    ): array {
+        $criteria = array_filter([
+            'search' => $search,
+            'name' => $name,
+            'address' => $address,
+            'phone' => $phone,
+            'created_from' => $createdFrom,
+            'created_to' => $createdTo,
+            'updated_from' => $updatedFrom,
+            'updated_to' => $updatedTo,
+            'order_by' => $orderBy,
+            'order_direction' => $orderDirection,
+        ]);
+
+        $result = $this->findByAdvancedSearchWithPagination($criteria, $page, $limit);
+        
+        return [
+            'results' => $result['results'],
+            'pagination' => [
+                'total' => $result['total'],
+                'page' => $result['page'],
+                'limit' => $result['limit'],
+                'pages' => $result['pages']
+            ]
+        ];
+    }
+
+    /**
+     * Búsqueda rápida en nombre, dirección y teléfono
+     */
+    public function quickSearch(string $query, int $limit = 10): array
+    {
+        if (strlen($query) < 2) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('r')
+            ->where(
+                $this->createQueryBuilder('r')->expr()->orX(
+                    'LOWER(r.name) LIKE LOWER(:query)',
+                    'LOWER(r.address) LIKE LOWER(:query)',
+                    'LOWER(r.phone) LIKE LOWER(:query)'
+                )
+            )
+            ->setParameter('query', '%' . $query . '%')
+            ->orderBy('r.name', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Alias para findSimilar para compatibilidad con tests
+     */
+    public function findSimilarRestaurants(Restaurant $restaurant, int $limit = 5): array
+    {
+        return $this->findSimilar($restaurant, $limit);
     }
 
     /**
@@ -318,7 +422,8 @@ class RestaurantRepository extends ServiceEntityRepository
             'created_this_month' => $createdThisMonth,
             'average_per_day' => $thisMonth->diff(new \DateTimeImmutable())->days > 0 
                 ? round($createdThisMonth / $thisMonth->diff(new \DateTimeImmutable())->days, 2) 
-                : 0
+                : 0,
+            'generated_at' => new \DateTimeImmutable()
         ];
     }
 } 
