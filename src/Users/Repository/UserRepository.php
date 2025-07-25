@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Users\Repository;
 
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -20,7 +20,7 @@ class UserRepository extends ServiceEntityRepository implements UserProviderInte
     }
 
     /**
-     * Buscar usuario por API Key
+     * Buscar usuario por API Key.
      */
     public function findByApiKey(string $apiKey): ?User
     {
@@ -34,7 +34,7 @@ class UserRepository extends ServiceEntityRepository implements UserProviderInte
     }
 
     /**
-     * Buscar usuario por email
+     * Buscar usuario por email.
      */
     public function findByEmail(string $email): ?User
     {
@@ -48,7 +48,7 @@ class UserRepository extends ServiceEntityRepository implements UserProviderInte
     }
 
     /**
-     * Implementación requerida por UserProviderInterface
+     * Implementación requerida por UserProviderInterface.
      */
     public function refreshUser(UserInterface $user): UserInterface
     {
@@ -60,7 +60,7 @@ class UserRepository extends ServiceEntityRepository implements UserProviderInte
     }
 
     /**
-     * Implementación requerida por UserProviderInterface
+     * Implementación requerida por UserProviderInterface.
      */
     public function supportsClass(string $class): bool
     {
@@ -68,7 +68,7 @@ class UserRepository extends ServiceEntityRepository implements UserProviderInte
     }
 
     /**
-     * Implementación requerida por UserProviderInterface
+     * Implementación requerida por UserProviderInterface.
      */
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
@@ -82,7 +82,7 @@ class UserRepository extends ServiceEntityRepository implements UserProviderInte
     }
 
     /**
-     * Contar usuarios activos
+     * Contar usuarios activos.
      */
     public function countActiveUsers(): int
     {
@@ -93,4 +93,4 @@ class UserRepository extends ServiceEntityRepository implements UserProviderInte
             ->getQuery()
             ->getSingleScalarResult();
     }
-} 
+}

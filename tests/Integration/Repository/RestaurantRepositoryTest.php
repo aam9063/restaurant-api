@@ -3,13 +3,14 @@
 namespace App\Tests\Integration\Repository;
 
 use App\Entity\Restaurant;
-use App\Repository\RestaurantRepository;
+use App\Restaurants\Repository\RestaurantRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class RestaurantRepositoryTest extends KernelTestCase
 {
     private EntityManagerInterface $entityManager;
+
     private RestaurantRepository $repository;
 
     protected function setUp(): void
@@ -50,8 +51,8 @@ class RestaurantRepositoryTest extends KernelTestCase
 
         $this->assertGreaterThanOrEqual(1, count($result['results']));
         $this->assertGreaterThanOrEqual(1, $result['pagination']['total']);
-        
-        $names = array_map(fn($r) => $r->getName(), $result['results']);
+
+        $names = array_map(fn ($r) => $r->getName(), $result['results']);
         $this->assertTrue(
             in_array('Pizzería Napolitana', $names) || in_array('Pizza Palace', $names),
             'Should find at least one pizza restaurant'
@@ -76,7 +77,7 @@ class RestaurantRepositoryTest extends KernelTestCase
     public function testFindWithAdvancedSearchWithPagination(): void
     {
         // Crear 5 restaurantes
-        for ($i = 1; $i <= 5; $i++) {
+        for ($i = 1; $i <= 5; ++$i) {
             $this->createRestaurant("Restaurant $i", "Address $i", "12345678$i");
         }
 
@@ -133,25 +134,25 @@ class RestaurantRepositoryTest extends KernelTestCase
     public function testFindWithAdvancedSearchByDateRange(): void
     {
         $restaurant1 = $this->createRestaurant('Restaurant 1', 'Address 1', '123456789');
-        
+
         // Simular que el segundo restaurante fue creado mañana
         $restaurant2 = new Restaurant();
         $restaurant2->setName('Restaurant 2');
         $restaurant2->setAddress('Address 2');
         $restaurant2->setPhone('987654321');
-        
+
         // Usar reflection para establecer fecha de creación futura
         $reflection = new \ReflectionClass($restaurant2);
         $createdAtProperty = $reflection->getProperty('createdAt');
         $createdAtProperty->setAccessible(true);
         $createdAtProperty->setValue($restaurant2, new \DateTimeImmutable('+1 day'));
-        
+
         $this->entityManager->persist($restaurant2);
         $this->entityManager->flush();
 
         // Buscar solo restaurantes creados hoy
         $today = (new \DateTime('today'))->format('Y-m-d');
-        
+
         $result = $this->repository->findWithAdvancedSearch(
             createdFrom: $today,
             createdTo: $today,
@@ -172,18 +173,18 @@ class RestaurantRepositoryTest extends KernelTestCase
         $result = $this->repository->quickSearch('Pizza', 5);
 
         $this->assertGreaterThanOrEqual(1, count($result));
-        
+
         // Verificar que devuelve objetos Restaurant
         $this->assertInstanceOf(Restaurant::class, $result[0]);
         $this->assertNotNull($result[0]->getId());
         $this->assertNotNull($result[0]->getName());
         $this->assertNotNull($result[0]->getAddress());
         $this->assertNotNull($result[0]->getPhone());
-        
+
         // Verificar que al menos uno contiene "Pizza" en el nombre
-        $names = array_map(fn($r) => $r->getName(), $result);
+        $names = array_map(fn ($r) => $r->getName(), $result);
         $this->assertTrue(
-            array_filter($names, fn($name) => stripos($name, 'Pizza') !== false) !== [],
+            array_filter($names, fn ($name) => stripos($name, 'Pizza') !== false) !== [],
             'Should find at least one restaurant with Pizza in the name'
         );
     }
@@ -229,14 +230,14 @@ class RestaurantRepositoryTest extends KernelTestCase
 
         // Debería encontrar al menos los restaurantes similares por nombre (contienen "Pizza")
         $this->assertGreaterThan(0, count($result));
-        
+
         // Verificar que no incluye el restaurante de referencia
         foreach ($result as $restaurant) {
             $this->assertNotEquals($referenceRestaurant->getId(), $restaurant->getId());
         }
-        
+
         // Verificar que al menos uno de los similares está en los resultados
-        $names = array_map(fn($r) => $r->getName(), $result);
+        $names = array_map(fn ($r) => $r->getName(), $result);
         $this->assertTrue(
             in_array('Pizzería Romana', $names) || in_array('Pizza Palace', $names),
             'Should find at least one similar restaurant'
@@ -258,8 +259,8 @@ class RestaurantRepositoryTest extends KernelTestCase
         );
 
         $this->assertCount(2, $result['results']);
-        
-        $names = array_map(fn($r) => $r->getName(), $result['results']);
+
+        $names = array_map(fn ($r) => $r->getName(), $result['results']);
         $this->assertContains('Pizza Roma', $names);
         $this->assertContains('Burger Pizza', $names);
     }
@@ -290,4 +291,4 @@ class RestaurantRepositoryTest extends KernelTestCase
 
         return $restaurant;
     }
-} 
+}

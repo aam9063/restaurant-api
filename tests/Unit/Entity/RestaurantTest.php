@@ -35,10 +35,10 @@ class RestaurantTest extends TestCase
     public function testConstructorSetsTimestamps(): void
     {
         $restaurant = new Restaurant();
-        
+
         $this->assertInstanceOf(\DateTimeImmutable::class, $restaurant->getCreatedAt());
         $this->assertInstanceOf(\DateTimeImmutable::class, $restaurant->getUpdatedAt());
-        
+
         // Verificar que las fechas están cerca del momento actual
         $now = new \DateTimeImmutable();
         $diff = $now->getTimestamp() - $restaurant->getCreatedAt()->getTimestamp();
@@ -49,14 +49,14 @@ class RestaurantTest extends TestCase
     {
         $restaurant = new Restaurant();
         $originalTime = new \DateTimeImmutable('2023-01-01 10:00:00');
-        
+
         // Establecer un tiempo específico
         $restaurant->setUpdatedAt($originalTime);
         $this->assertEquals($originalTime, $restaurant->getUpdatedAt());
-        
+
         // Usar un setter debería actualizar el timestamp
         $restaurant->setName('Nuevo Nombre');
-        
+
         // Verificar que el timestamp cambió
         $this->assertNotEquals($originalTime, $restaurant->getUpdatedAt());
         $this->assertGreaterThan(
@@ -73,7 +73,7 @@ class RestaurantTest extends TestCase
     public function testDefaultValues(): void
     {
         $restaurant = new Restaurant();
-        
+
         $this->assertNull($restaurant->getId());
         $this->assertNull($restaurant->getName());
         $this->assertNull($restaurant->getAddress());
@@ -131,12 +131,12 @@ class RestaurantTest extends TestCase
             '',
             'a',
             'Restaurante Normal',
-            str_repeat('a', 256)
+            str_repeat('a', 256),
         ];
-        
+
         foreach ($stringValues as $value) {
             $this->restaurant->setName($value);
             $this->assertEquals($value, $this->restaurant->getName());
         }
     }
-} 
+}

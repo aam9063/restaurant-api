@@ -2,7 +2,7 @@
 
 namespace App\Security;
 
-use App\Repository\UserRepository;
+use App\Users\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,7 +26,7 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
         // Verificar si hay headers de autenticación presentes y válidos
         $authHeader = $request->headers->get('Authorization');
         $hasValidAuth = $authHeader && str_starts_with($authHeader, 'Bearer ');
-        
+
         return $hasValidAuth
             || $request->headers->has('X-API-KEY')
             || $request->cookies->has('api_key');
@@ -35,13 +35,13 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
     public function authenticate(Request $request): Passport
     {
         $apiKey = $this->getApiKey($request);
-        
+
         if (null === $apiKey) {
             throw new CustomUserMessageAuthenticationException('No API key provided');
         }
 
         $user = $this->userRepository->findByApiKey($apiKey);
-        
+
         if (!$user) {
             throw new CustomUserMessageAuthenticationException('Invalid API key');
         }
@@ -64,7 +64,7 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
         $data = [
             'message' => strtr($exception->getMessageKey(), $exception->getMessageData()),
             'error' => 'authentication_failed',
-            'code' => Response::HTTP_UNAUTHORIZED
+            'code' => Response::HTTP_UNAUTHORIZED,
         ];
 
         return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
@@ -87,4 +87,4 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
         // Finalmente intentar obtenerla desde las cookies
         return $request->cookies->get('api_key');
     }
-} 
+}

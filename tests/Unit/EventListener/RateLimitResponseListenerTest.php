@@ -22,9 +22,9 @@ class RateLimitResponseListenerTest extends TestCase
     {
         $request = new Request();
         $request->server->set('REQUEST_URI', '/api/test');
-        
+
         $response = new Response();
-        
+
         $event = new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
             $request,
@@ -42,9 +42,9 @@ class RateLimitResponseListenerTest extends TestCase
     {
         $request = new Request();
         $request->server->set('REQUEST_URI', '/home');
-        
+
         $response = new Response();
-        
+
         $event = new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
             $request,
@@ -65,11 +65,11 @@ class RateLimitResponseListenerTest extends TestCase
         $request->attributes->set('rate_limit_info', [
             'limit' => 200,
             'remaining' => 150,
-            'type' => 'authenticated_user'
+            'type' => 'authenticated_user',
         ]);
-        
+
         $response = new Response();
-        
+
         $event = new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
             $request,
@@ -93,11 +93,11 @@ class RateLimitResponseListenerTest extends TestCase
         $request->attributes->set('rate_limit_info', [
             'limit' => 50,
             'remaining' => 40,
-            'type' => 'anonymous_user'
+            'type' => 'anonymous_user',
         ]);
-        
+
         $response = new Response();
-        
+
         $event = new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
             $request,
@@ -120,11 +120,11 @@ class RateLimitResponseListenerTest extends TestCase
         $request->attributes->set('rate_limit_info', [
             'limit' => 10,
             'remaining' => 2, // Cerca del límite
-            'type' => 'login'
+            'type' => 'login',
         ]);
-        
+
         $response = new Response();
-        
+
         $event = new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
             $request,
@@ -147,11 +147,11 @@ class RateLimitResponseListenerTest extends TestCase
         $request->attributes->set('rate_limit_info', [
             'limit' => 100,
             'remaining' => 90, // Lejos del límite
-            'type' => 'write_operations'
+            'type' => 'write_operations',
         ]);
-        
+
         $response = new Response();
-        
+
         $event = new ResponseEvent(
             $this->createMock(HttpKernelInterface::class),
             $request,
@@ -172,7 +172,7 @@ class RateLimitResponseListenerTest extends TestCase
         $paths = [
             '/api/auth/register',
             '/api/restaurants/search',
-            '/api/user/me'
+            '/api/user/me',
         ];
 
         foreach ($paths as $path) {
@@ -181,11 +181,11 @@ class RateLimitResponseListenerTest extends TestCase
             $request->attributes->set('rate_limit_info', [
                 'limit' => 50,
                 'remaining' => 25,
-                'type' => 'registration'
+                'type' => 'registration',
             ]);
-            
+
             $response = new Response();
-            
+
             $event = new ResponseEvent(
                 $this->createMock(HttpKernelInterface::class),
                 $request,
@@ -201,4 +201,4 @@ class RateLimitResponseListenerTest extends TestCase
             $this->assertEquals('5 requests per hour', $response->headers->get('X-RateLimit-Policy'));
         }
     }
-} 
+}

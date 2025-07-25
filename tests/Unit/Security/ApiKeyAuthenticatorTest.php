@@ -3,21 +3,21 @@
 namespace App\Tests\Unit\Security;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
 use App\Security\ApiKeyAuthenticator;
-use PHPUnit\Framework\TestCase;
+use App\Users\Repository\UserRepository;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
-use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 
 class ApiKeyAuthenticatorTest extends TestCase
 {
     private ApiKeyAuthenticator $authenticator;
+
     private MockObject|UserRepository $userRepository;
 
     protected function setUp(): void
@@ -223,7 +223,7 @@ class ApiKeyAuthenticatorTest extends TestCase
 
         // Debería soportar cookies en supports()
         $this->assertTrue($this->authenticator->supports($request));
-        
+
         $user = new User();
         $user->setEmail('test@ejemplo.com');
         $user->setApiKey($apiKey);
@@ -241,7 +241,7 @@ class ApiKeyAuthenticatorTest extends TestCase
     public function testMultipleAuthenticationMethods(): void
     {
         $apiKey = 'test-api-key';
-        
+
         // Test con diferentes métodos de autenticación
         $methods = [
             ['X-API-KEY', $apiKey],
@@ -266,4 +266,4 @@ class ApiKeyAuthenticatorTest extends TestCase
             $this->assertInstanceOf(SelfValidatingPassport::class, $passport);
         }
     }
-} 
+}

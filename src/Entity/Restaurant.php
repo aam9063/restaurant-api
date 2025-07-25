@@ -9,7 +9,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use App\Repository\RestaurantRepository;
+use App\Restaurants\Repository\RestaurantRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -43,7 +43,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Delete(
             security: "is_granted('ROLE_USER')"
-        )
+        ),
     ],
     normalizationContext: ['groups' => ['restaurant:read']],
     denormalizationContext: ['groups' => ['restaurant:write']],
@@ -176,4 +176,4 @@ class Restaurant
 
         return $this;
     }
-} 
+}

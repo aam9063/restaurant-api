@@ -47,7 +47,7 @@ class UserTest extends TestCase
     public function testConstructorSetsDefaults(): void
     {
         $user = new User();
-        
+
         $this->assertTrue($user->isActive());
         $this->assertContains('ROLE_USER', $user->getRoles());
         $this->assertInstanceOf(\DateTimeImmutable::class, $user->getCreatedAt());
@@ -57,7 +57,7 @@ class UserTest extends TestCase
     public function testGenerateApiKey(): void
     {
         $this->user->generateApiKey();
-        
+
         $apiKey = $this->user->getApiKey();
         $this->assertNotNull($apiKey);
         $this->assertEquals(64, strlen($apiKey)); // bin2hex(random_bytes(32)) = 64 caracteres
@@ -68,10 +68,10 @@ class UserTest extends TestCase
     {
         $this->user->generateApiKey();
         $firstKey = $this->user->getApiKey();
-        
+
         $this->user->generateApiKey();
         $secondKey = $this->user->getApiKey();
-        
+
         $this->assertNotEquals($firstKey, $secondKey);
     }
 
@@ -79,10 +79,10 @@ class UserTest extends TestCase
     {
         $email = 'test@ejemplo.com';
         $this->user->setEmail($email);
-        
+
         // getUserIdentifier debería devolver el email
         $this->assertEquals($email, $this->user->getUserIdentifier());
-        
+
         // getRoles siempre debe incluir ROLE_USER
         $this->assertContains('ROLE_USER', $this->user->getRoles());
     }
@@ -91,7 +91,7 @@ class UserTest extends TestCase
     {
         // Sin roles específicos
         $this->assertContains('ROLE_USER', $this->user->getRoles());
-        
+
         // Con roles específicos
         $this->user->setRoles(['ROLE_ADMIN']);
         $roles = $this->user->getRoles();
@@ -103,14 +103,14 @@ class UserTest extends TestCase
     {
         $user = new User();
         $originalTime = new \DateTimeImmutable('2023-01-01 10:00:00');
-        
+
         // Establecer un tiempo específico
         $user->setUpdatedAt($originalTime);
         $this->assertEquals($originalTime, $user->getUpdatedAt());
-        
+
         // Usar un setter debería actualizar el timestamp
         $user->setName('Nuevo Nombre');
-        
+
         // Verificar que el timestamp cambió
         $this->assertNotEquals($originalTime, $user->getUpdatedAt());
         $this->assertGreaterThan(
@@ -122,7 +122,7 @@ class UserTest extends TestCase
     public function testDefaultValues(): void
     {
         $user = new User();
-        
+
         $this->assertNull($user->getId());
         $this->assertNull($user->getEmail());
         $this->assertNull($user->getName());
@@ -151,7 +151,7 @@ class UserTest extends TestCase
         // El método existe pero no hace nada por ahora
         $this->user->setApiKey('test_key');
         $this->user->eraseCredentials();
-        
+
         // El API key debería seguir ahí porque no implementamos borrado automático
         $this->assertEquals('test_key', $this->user->getApiKey());
     }
@@ -163,9 +163,9 @@ class UserTest extends TestCase
         $emails = [
             'test@ejemplo.com',
             'invalid-email',
-            ''
+            '',
         ];
-        
+
         foreach ($emails as $email) {
             $this->user->setEmail($email);
             $this->assertEquals($email, $this->user->getEmail());
@@ -176,7 +176,7 @@ class UserTest extends TestCase
     {
         $this->user->setRoles(['ROLE_USER', 'ROLE_ADMIN', 'ROLE_USER']);
         $roles = $this->user->getRoles();
-        
+
         // Debería eliminar duplicados y mantener ROLE_USER
         $this->assertCount(2, $roles);
         $this->assertContains('ROLE_USER', $roles);
@@ -188,4 +188,4 @@ class UserTest extends TestCase
         $this->assertInstanceOf(\DateTimeImmutable::class, $this->user->getCreatedAt());
         $this->assertInstanceOf(\DateTimeImmutable::class, $this->user->getUpdatedAt());
     }
-} 
+}

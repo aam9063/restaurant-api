@@ -6,7 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
-use App\Repository\UserRepository;
+use App\Users\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -31,7 +31,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(
             normalizationContext: ['groups' => ['user:read']],
             security: "is_granted('ROLE_ADMIN') or object == user"
-        )
+        ),
     ],
     normalizationContext: ['groups' => ['user:read']],
     denormalizationContext: ['groups' => ['user:write']]
@@ -215,4 +215,4 @@ class User implements UserInterface
 
         return $this;
     }
-} 
+}

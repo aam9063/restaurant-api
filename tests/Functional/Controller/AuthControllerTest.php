@@ -3,7 +3,7 @@
 namespace App\Tests\Functional\Controller;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
+use App\Users\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,13 +11,15 @@ use Symfony\Component\HttpFoundation\Response;
 class AuthControllerTest extends WebTestCase
 {
     private $client;
+
     private EntityManagerInterface $entityManager;
+
     private UserRepository $userRepository;
 
     protected function setUp(): void
     {
         $this->client = static::createClient();
-        
+
         $this->entityManager = static::getContainer()->get('doctrine')->getManager();
         $this->userRepository = $this->entityManager->getRepository(User::class);
 
@@ -36,7 +38,7 @@ class AuthControllerTest extends WebTestCase
         $userData = [
             'email' => 'test@ejemplo.com',
             'name' => 'Usuario de Prueba',
-            'roles' => ['ROLE_USER']
+            'roles' => ['ROLE_USER'],
         ];
 
         $this->client->request(
@@ -68,7 +70,7 @@ class AuthControllerTest extends WebTestCase
     {
         $userData = [
             'email' => 'invalid-email',
-            'name' => 'Usuario de Prueba'
+            'name' => 'Usuario de Prueba',
         ];
 
         $this->client->request(
@@ -91,7 +93,7 @@ class AuthControllerTest extends WebTestCase
     public function testRegisterWithMissingData(): void
     {
         $userData = [
-            'email' => 'test@ejemplo.com'
+            'email' => 'test@ejemplo.com',
             // Falta el nombre
         ];
 
@@ -115,14 +117,14 @@ class AuthControllerTest extends WebTestCase
         $user->setEmail('test@ejemplo.com');
         $user->setName('Usuario Existente');
         $user->generateApiKey();
-        
+
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
         // Intentar crear segundo usuario con mismo email
         $userData = [
             'email' => 'test@ejemplo.com',
-            'name' => 'Usuario Duplicado'
+            'name' => 'Usuario Duplicado',
         ];
 
         $this->client->request(
@@ -148,7 +150,7 @@ class AuthControllerTest extends WebTestCase
         $user = $this->createTestUser('test@ejemplo.com', 'Usuario de Prueba');
 
         $loginData = [
-            'email' => 'test@ejemplo.com'
+            'email' => 'test@ejemplo.com',
         ];
 
         $this->client->request(
@@ -173,7 +175,7 @@ class AuthControllerTest extends WebTestCase
     public function testLoginWithNonExistentEmail(): void
     {
         $loginData = [
-            'email' => 'noexiste@ejemplo.com'
+            'email' => 'noexiste@ejemplo.com',
         ];
 
         $this->client->request(
@@ -201,7 +203,7 @@ class AuthControllerTest extends WebTestCase
         $this->entityManager->flush();
 
         $loginData = [
-            'email' => 'inactive@ejemplo.com'
+            'email' => 'inactive@ejemplo.com',
         ];
 
         $this->client->request(
@@ -331,8 +333,8 @@ class AuthControllerTest extends WebTestCase
     {
         // Este test verifica que el rate limiting esté funcionando
         // Hacer múltiples requests rápidos de login fallido
-        
-        for ($i = 0; $i < 12; $i++) { // Más del límite de 10
+
+        for ($i = 0; $i < 12; ++$i) { // Más del límite de 10
             $this->client->request(
                 'POST',
                 '/api/auth/login',
@@ -344,7 +346,7 @@ class AuthControllerTest extends WebTestCase
         }
 
         $response = $this->client->getResponse();
-        
+
         // Después de exceder el límite, debería recibir 429
         $this->assertEquals(Response::HTTP_TOO_MANY_REQUESTS, $response->getStatusCode());
     }
@@ -361,10 +363,10 @@ class AuthControllerTest extends WebTestCase
         );
 
         $response = $this->client->getResponse();
-        
+
         // Verificar que la respuesta es JSON válido
         $this->assertJson($response->getContent());
-        
+
         // Verificar estructura de respuesta de error
         $data = json_decode($response->getContent(), true);
         $this->assertArrayHasKey('error', $data);
@@ -385,4 +387,4 @@ class AuthControllerTest extends WebTestCase
 
         return $user;
     }
-} 
+}

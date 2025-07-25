@@ -24,7 +24,7 @@ services:
     # please note that last definitions always *replace* previous ones
     
     # Rate Limiter Services
-    App\EventListener\RateLimitListener:
+    App\RateLimiting\EventListener\RateLimitListener:
         arguments:
             $apiGeneralLimiter: '@limiter.api_general'
             $apiWriteOperationsLimiter: '@limiter.api_write_operations'
@@ -32,3 +32,15 @@ services:
             $authenticatedUserLimiter: '@limiter.authenticated_user'
             $anonymousUserLimiter: '@limiter.anonymous_user'
             $userRegistrationLimiter: '@limiter.user_registration'
+
+    # Repository Aliases
+    App\Repository\UserRepository: '@App\Users\Repository\UserRepository'
+    App\Repository\RestaurantRepository: '@App\Restaurants\Repository\RestaurantRepository'
+    
+    # Controller Aliases
+    App\Controller\AuthController: '@App\Users\Controller\AuthController'
+    App\Controller\RestaurantSearchController: '@App\Restaurants\Controller\RestaurantSearchController'
+    
+    # EventListener Aliases
+    App\EventListener\RateLimitListener: '@App\RateLimiting\EventListener\RateLimitListener'
+    App\EventListener\RateLimitResponseListener: '@App\RateLimiting\EventListener\RateLimitResponseListener'

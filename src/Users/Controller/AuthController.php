@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Controller;
+namespace App\Users\Controller;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
+use App\Users\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Nelmio\ApiDocBundle\Annotation\Model;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -47,7 +46,7 @@ class AuthController extends AbstractController
                     format: 'email',
                     example: 'usuario@ejemplo.com',
                     description: 'Email del usuario'
-                )
+                ),
             ]
         )
     )]
@@ -64,10 +63,10 @@ class AuthController extends AbstractController
                         new OA\Property(property: 'id', type: 'integer', example: 1),
                         new OA\Property(property: 'email', type: 'string', example: 'usuario@ejemplo.com'),
                         new OA\Property(property: 'name', type: 'string', example: 'Usuario Ejemplo'),
-                        new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string'), example: ['ROLE_USER'])
+                        new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string'), example: ['ROLE_USER']),
                     ]
                 ),
-                new OA\Property(property: 'api_key', type: 'string', example: 'abc123...', description: 'API Key para autenticación')
+                new OA\Property(property: 'api_key', type: 'string', example: 'abc123...', description: 'API Key para autenticación'),
             ]
         )
     )]
@@ -77,7 +76,7 @@ class AuthController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'error', type: 'string', example: 'Email es requerido'),
-                new OA\Property(property: 'code', type: 'integer', example: 400)
+                new OA\Property(property: 'code', type: 'integer', example: 400),
             ]
         )
     )]
@@ -87,34 +86,34 @@ class AuthController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'error', type: 'string', example: 'Usuario no encontrado'),
-                new OA\Property(property: 'code', type: 'integer', example: 404)
+                new OA\Property(property: 'code', type: 'integer', example: 404),
             ]
         )
     )]
     public function login(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+
         if (!isset($data['email'])) {
             return new JsonResponse([
                 'error' => 'Email es requerido',
-                'code' => Response::HTTP_BAD_REQUEST
+                'code' => Response::HTTP_BAD_REQUEST,
             ], Response::HTTP_BAD_REQUEST);
         }
 
         $user = $this->userRepository->findByEmail($data['email']);
-        
+
         if (!$user) {
             return new JsonResponse([
                 'error' => 'Usuario no encontrado',
-                'code' => Response::HTTP_NOT_FOUND
+                'code' => Response::HTTP_NOT_FOUND,
             ], Response::HTTP_NOT_FOUND);
         }
 
         if (!$user->isActive()) {
             return new JsonResponse([
                 'error' => 'Usuario inactivo',
-                'code' => Response::HTTP_FORBIDDEN
+                'code' => Response::HTTP_FORBIDDEN,
             ], Response::HTTP_FORBIDDEN);
         }
 
@@ -133,13 +132,13 @@ class AuthController extends AbstractController
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),
                 'name' => $user->getName(),
-                'roles' => $user->getRoles()
+                'roles' => $user->getRoles(),
             ],
-            'api_key' => $user->getApiKey()
+            'api_key' => $user->getApiKey(),
         ]);
 
         $response->headers->setCookie($cookie);
-        
+
         return $response;
     }
 
@@ -155,7 +154,7 @@ class AuthController extends AbstractController
         description: 'Logout exitoso',
         content: new OA\JsonContent(
             properties: [
-                new OA\Property(property: 'message', type: 'string', example: 'Logout exitoso')
+                new OA\Property(property: 'message', type: 'string', example: 'Logout exitoso'),
             ]
         )
     )]
@@ -169,11 +168,11 @@ class AuthController extends AbstractController
             ->withHttpOnly(true);
 
         $response = new JsonResponse([
-            'message' => 'Logout exitoso'
+            'message' => 'Logout exitoso',
         ]);
 
         $response->headers->setCookie($cookie);
-        
+
         return $response;
     }
 
@@ -209,7 +208,7 @@ class AuthController extends AbstractController
                     items: new OA\Items(type: 'string'),
                     example: ['ROLE_USER'],
                     description: 'Roles del usuario (opcional)'
-                )
+                ),
             ]
         )
     )]
@@ -227,9 +226,9 @@ class AuthController extends AbstractController
                         new OA\Property(property: 'email', type: 'string', example: 'nuevo@ejemplo.com'),
                         new OA\Property(property: 'name', type: 'string', example: 'Nuevo Usuario'),
                         new OA\Property(property: 'api_key', type: 'string', example: 'def456...'),
-                        new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string'), example: ['ROLE_USER'])
+                        new OA\Property(property: 'roles', type: 'array', items: new OA\Items(type: 'string'), example: ['ROLE_USER']),
                     ]
-                )
+                ),
             ]
         )
     )]
@@ -240,35 +239,35 @@ class AuthController extends AbstractController
             properties: [
                 new OA\Property(property: 'error', type: 'string', example: 'Datos de validación incorrectos'),
                 new OA\Property(property: 'details', type: 'array', items: new OA\Items(type: 'string')),
-                new OA\Property(property: 'code', type: 'integer', example: 400)
+                new OA\Property(property: 'code', type: 'integer', example: 400),
             ]
         )
     )]
     public function register(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        
+
         $user = new User();
         $user->setEmail($data['email'] ?? '');
         $user->setName($data['name'] ?? '');
-        
+
         // Si se especifica rol y es admin, asignarlo
         if (isset($data['roles']) && in_array('ROLE_ADMIN', $data['roles'])) {
             $user->setRoles(['ROLE_ADMIN']);
         }
 
         $errors = $this->validator->validate($user);
-        
+
         if (count($errors) > 0) {
             $errorMessages = [];
             foreach ($errors as $error) {
                 $errorMessages[] = $error->getMessage();
             }
-            
+
             return new JsonResponse([
                 'error' => 'Datos de validación incorrectos',
                 'details' => $errorMessages,
-                'code' => Response::HTTP_BAD_REQUEST
+                'code' => Response::HTTP_BAD_REQUEST,
             ], Response::HTTP_BAD_REQUEST);
         }
 
@@ -283,15 +282,15 @@ class AuthController extends AbstractController
                     'email' => $user->getEmail(),
                     'name' => $user->getName(),
                     'api_key' => $user->getApiKey(),
-                    'roles' => $user->getRoles()
-                ]
+                    'roles' => $user->getRoles(),
+                ],
             ], Response::HTTP_CREATED);
-            
+
         } catch (\Exception $e) {
             return new JsonResponse([
                 'error' => 'Error al crear usuario',
                 'details' => $e->getMessage(),
-                'code' => Response::HTTP_INTERNAL_SERVER_ERROR
+                'code' => Response::HTTP_INTERNAL_SERVER_ERROR,
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -320,9 +319,9 @@ class AuthController extends AbstractController
                         new OA\Property(property: 'api_key', type: 'string', example: 'abc123...'),
                         new OA\Property(property: 'is_active', type: 'boolean', example: true),
                         new OA\Property(property: 'created_at', type: 'string', example: '2024-01-15 10:30:45'),
-                        new OA\Property(property: 'updated_at', type: 'string', example: '2024-01-15 10:30:45')
+                        new OA\Property(property: 'updated_at', type: 'string', example: '2024-01-15 10:30:45'),
                     ]
-                )
+                ),
             ]
         )
     )]
@@ -332,7 +331,7 @@ class AuthController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'error', type: 'string', example: 'Usuario no autenticado'),
-                new OA\Property(property: 'code', type: 'integer', example: 401)
+                new OA\Property(property: 'code', type: 'integer', example: 401),
             ]
         )
     )]
@@ -341,7 +340,7 @@ class AuthController extends AbstractController
         if (!$user) {
             return new JsonResponse([
                 'error' => 'Usuario no autenticado',
-                'code' => Response::HTTP_UNAUTHORIZED
+                'code' => Response::HTTP_UNAUTHORIZED,
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -354,8 +353,8 @@ class AuthController extends AbstractController
                 'api_key' => $user->getApiKey(),
                 'is_active' => $user->isActive(),
                 'created_at' => $user->getCreatedAt()->format('Y-m-d H:i:s'),
-                'updated_at' => $user->getUpdatedAt()->format('Y-m-d H:i:s')
-            ]
+                'updated_at' => $user->getUpdatedAt()->format('Y-m-d H:i:s'),
+            ],
         ]);
     }
 
@@ -373,7 +372,7 @@ class AuthController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'message', type: 'string', example: 'API Key renovada exitosamente'),
-                new OA\Property(property: 'api_key', type: 'string', example: 'xyz789...')
+                new OA\Property(property: 'api_key', type: 'string', example: 'xyz789...'),
             ]
         )
     )]
@@ -383,7 +382,7 @@ class AuthController extends AbstractController
         content: new OA\JsonContent(
             properties: [
                 new OA\Property(property: 'error', type: 'string', example: 'Usuario no autenticado'),
-                new OA\Property(property: 'code', type: 'integer', example: 401)
+                new OA\Property(property: 'code', type: 'integer', example: 401),
             ]
         )
     )]
@@ -392,7 +391,7 @@ class AuthController extends AbstractController
         if (!$user) {
             return new JsonResponse([
                 'error' => 'Usuario no autenticado',
-                'code' => Response::HTTP_UNAUTHORIZED
+                'code' => Response::HTTP_UNAUTHORIZED,
             ], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -410,11 +409,11 @@ class AuthController extends AbstractController
 
         $response = new JsonResponse([
             'message' => 'API Key renovada exitosamente',
-            'api_key' => $user->getApiKey()
+            'api_key' => $user->getApiKey(),
         ]);
 
         $response->headers->setCookie($cookie);
-        
+
         return $response;
     }
-} 
+}
