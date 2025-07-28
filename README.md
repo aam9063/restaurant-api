@@ -154,10 +154,28 @@ La API implementa un sistema de rate limiting inteligente que aplica diferentes 
 
 ## 🧪 Testing y Uso
 
-### Usuario de Prueba
+### Crear Usuario de Prueba
+
+Para crear un usuario de prueba con permisos de administrador, ejecuta el siguiente comando:
+
+```bash
+# Crear usuario de prueba con rol de admin
+docker exec restaurant_api_php php bin/console app:create-test-user
+
+# El comando mostrará:
+# ✅ Usuario creado exitosamente
+# Email: usuario@ejemplo.com
+# Nombre: Usuario de Prueba
+# Roles: ROLE_USER, ROLE_ADMIN
+# API Key generada (guárdala en lugar seguro):
+# [tu-api-key-generada]
+```
+
+### Usuario de Prueba Predeterminado
 
 **Email de Usuario Admin:** `usuario@ejemplo.com`  
-**API Key:** `d7a24e347302581cf13ae38ed58efd62ff965f828a2c0ea619be48fb7fb103c9`
+**Roles:** `ROLE_USER`, `ROLE_ADMIN`  
+**API Key:** Se genera automáticamente al crear el usuario
 
 ### Ejemplos con cURL
 
@@ -204,6 +222,19 @@ docker-compose logs php
 
 # Acceder a bash del contenedor
 docker exec -it restaurant_api_php sh
+```
+
+### Gestión de Usuarios
+
+```bash
+# Crear usuario de prueba con rol admin
+docker exec restaurant_api_php php bin/console app:create-test-user
+
+# Regenerar API Key de un usuario
+docker exec restaurant_api_php php bin/console app:regenerate-api-key usuario@ejemplo.com
+
+# Actualizar roles de un usuario
+docker exec restaurant_api_php php bin/console app:update-user-roles usuario@ejemplo.com "ROLE_USER,ROLE_ADMIN"
 ```
 
 ---

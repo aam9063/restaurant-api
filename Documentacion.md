@@ -251,12 +251,28 @@ curl -H "X-API-KEY: tu_api_key_aqui" \
      http://localhost:8080/api/restaurants
 ```
 
-#### 3. Crear Primer Restaurante
+#### 3. Crear Usuario Administrador
 
 ```bash
+# Crear usuario de prueba con rol de admin usando el comando personalizado
+docker exec restaurant_api_php php bin/console app:create-test-user
+
+# El comando mostrará:
+# ✅ Usuario creado exitosamente
+# Email: usuario@ejemplo.com
+# Nombre: Usuario de Prueba
+# Roles: ROLE_USER, ROLE_ADMIN
+# API Key generada (guárdala en lugar seguro):
+# [tu-api-key-generada-segura]
+```
+
+#### 4. Crear Primer Restaurante
+
+```bash
+# Usar la API Key generada en el paso anterior
 curl -X POST http://localhost:8080/api/restaurants \
      -H "Content-Type: application/json" \
-     -H "X-API-KEY: tu_api_key_aqui" \
+     -H "X-API-KEY: tu_api_key_del_paso_anterior" \
      -d '{
        "name": "Mi Primer Restaurante",
        "address": "Calle Principal 123",
@@ -278,19 +294,42 @@ Visita http://localhost:8080/api/docs para:
 
 Marca cada item cuando lo completes:
 
+**Setup Básico:**
 - [ ] Docker y Docker Compose instalados
 - [ ] Proyecto descargado/clonado
-- [ ] Archivo `.env` creado con APP_SECRET
+- [ ] Archivo `.env` creado con APP_SECRET único
 - [ ] Contenedores construidos y corriendo (`docker-compose ps`)
 - [ ] Dependencias instaladas (`composer install`)
 - [ ] Base de datos creada
 - [ ] Migraciones ejecutadas
 - [ ] Cache limpiado
+
+**Verificación de API:**
 - [ ] API responde en http://localhost:8080/api
 - [ ] Swagger UI accesible en http://localhost:8080/api/docs
-- [ ] Usuario de prueba creado
-- [ ] Autenticación funcionando
-- [ ] Primer restaurante creado
+- [ ] Documentación OpenAPI completa visible
+
+**Seguridad y Usuarios:**
+- [ ] Usuario administrador creado con `app:create-test-user`
+- [ ] API Key segura generada (64 caracteres hex)
+- [ ] Autenticación funcionando con X-API-KEY
+- [ ] Verificar que usuario tiene roles ROLE_USER y ROLE_ADMIN
+
+**Funcionalidades:**
+- [ ] Primer restaurante creado exitosamente
+- [ ] CRUD completo de restaurantes probado
+- [ ] Rate limiting funcionando
+- [ ] Headers de seguridad presentes en respuestas
+
+**Tests y Calidad:**
+- [ ] Tests ejecutados con `./run-tests.sh all` (76/76 ✅)
+- [ ] Linter ejecutado con `./lint.sh` sin errores
+- [ ] Documentación técnica revisada
+
+**Comandos de Gestión:**
+- [ ] Comando `app:create-test-user` funcional
+- [ ] Comando `app:regenerate-api-key` funcional  
+- [ ] Comando `app:update-user-roles` funcional
 
 ---
 
@@ -676,6 +715,10 @@ restaurant-api/
 ├── public/                     # Punto de entrada web
 │   └── index.php              # Front controller
 ├── src/                        # Código fuente de la aplicación
+│   ├── Command/                # Comandos de consola Symfony
+│   │   ├── CreateTestUserCommand.php # Crear usuario de prueba
+│   │   ├── RegenerateApiKeyCommand.php # Regenerar API Key
+│   │   └── UpdateUserRolesCommand.php # Actualizar roles de usuario
 │   ├── Controller/             # Controladores HTTP
 │   │   ├── AuthController.php  # Autenticación y login
 │   │   ├── RestaurantSearchController.php # Búsqueda avanzada
@@ -692,6 +735,8 @@ restaurant-api/
 │   ├── Security/               # Componentes de seguridad
 │   │   ├── ApiKeyAuthenticator.php # Autenticador API Key
 │   │   └── UserChecker.php     # Verificador de usuarios
+│   ├── Service/                # Servicios de negocio
+│   │   └── ApiKeyService.php   # Gestión segura de API Keys
 │   └── Kernel.php             # Kernel de la aplicación
 ├── templates/                  # Templates Twig
 │   └── bundles/               # Override de templates
@@ -800,7 +845,50 @@ class Restaurant
 
 ## 🔧 Implementación Detallada
 
-### Sistema de Autenticación Implementado
+### Sistema de Autenticación y Seguridad Implementado
+
+El sistema de autenticación ha sido mejorado con las siguientes características de seguridad:
+
+- ✅ **API Keys hasheadas**: Las API Keys se almacenan hasheadas con Argon2ID
+- ✅ **Generación segura**: Uso de `random_bytes()` para generar keys criptográficamente seguras
+- ✅ **Comandos de gestión**: Comandos Symfony para crear y gestionar usuarios
+- ✅ **Roles jerárquicos**: Sistema de roles con `ROLE_ADMIN` que incluye `ROLE_USER`
+- ✅ **Validación robusta**: Verificación de formato y longitud de API Keys
+
+#### Comandos de Gestión de Usuarios
+
+```bash
+# Crear usuario de prueba con rol de administrador
+docker exec restaurant_api_php php bin/console app:create-test-user
+# Salida:
+# ✅ Usuario creado exitosamente
+# Email: usuario@ejemplo.com
+# Nombre: Usuario de Prueba
+# Roles: ROLE_USER, ROLE_ADMIN
+# API Key generada (guárdala en lugar seguro):
+# a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2
+
+# Regenerar API Key de un usuario existente
+docker exec restaurant_api_php php bin/console app:regenerate-api-key usuario@ejemplo.com
+# Salida:
+# ✅ API Key regenerada exitosamente para usuario@ejemplo.com
+# Nueva API Key: z9y8x7w6v5u4t3s2r1q0p9o8n7m6l5k4j3i2h1g0f9e8d7c6b5a4z3y2x1w0v9u8
+
+# Actualizar roles de un usuario
+docker exec restaurant_api_php php bin/console app:update-user-roles usuario@ejemplo.com "ROLE_USER,ROLE_ADMIN"
+# Salida:
+# ✅ Roles actualizados exitosamente para usuario@ejemplo.com
+# Roles previos: ["ROLE_USER"]
+# Roles nuevos: ["ROLE_USER", "ROLE_ADMIN"]
+```
+
+#### Características de Seguridad de las API Keys
+
+- **Longitud**: 64 caracteres hexadecimales (256 bits de entropía)
+- **Algoritmo de hash**: Argon2ID (recomendado por OWASP)
+- **Validación**: Formato hexadecimal estricto
+- **Almacenamiento**: Solo el hash se guarda en base de datos
+- **Verificación**: Uso de `password_verify()` para comparar de forma segura
 
 #### Configuración de Seguridad
 
@@ -1507,6 +1595,175 @@ jobs:
 
 ---
 
+## 🔐 Mejores Prácticas de Seguridad Implementadas
+
+### Gestión Segura de API Keys
+
+El proyecto implementa un sistema robusto de gestión de API Keys siguiendo las mejores prácticas de seguridad:
+
+#### 1. Generación Criptográficamente Segura
+
+```php
+// src/Service/ApiKeyService.php
+public function generateApiKey(): string
+{
+    // Genera 32 bytes aleatorios (256 bits de entropía)
+    $randomBytes = random_bytes(32);
+    
+    // Convierte a hexadecimal (64 caracteres)
+    return bin2hex($randomBytes);
+}
+```
+
+#### 2. Hash Seguro con Argon2ID
+
+```php
+public function hashApiKey(string $plainApiKey): string
+{
+    // Usa Argon2ID, el algoritmo recomendado por OWASP
+    return password_hash($plainApiKey, PASSWORD_ARGON2ID, [
+        'memory_cost' => 65536, // 64 MB
+        'time_cost' => 4,       // 4 iterations
+        'threads' => 3          // 3 threads
+    ]);
+}
+```
+
+#### 3. Validación Estricta
+
+```php
+public function isValidApiKeyFormat(string $apiKey): bool
+{
+    // Valida que sea exactamente 64 caracteres hexadecimales
+    return preg_match('/^[a-f0-9]{64}$/', $apiKey) === 1;
+}
+```
+
+#### 4. Verificación Segura
+
+```php
+// src/Repository/UserRepository.php
+public function findByApiKeyHash(string $plainApiKey): ?User
+{
+    $users = $this->findBy(['isActive' => true]);
+    
+    foreach ($users as $user) {
+        if (password_verify($plainApiKey, $user->getApiKey())) {
+            return $user;
+        }
+    }
+    
+    return null;
+}
+```
+
+### Principios de Seguridad Aplicados
+
+#### 1. Defense in Depth (Defensa en Profundidad)
+
+- ✅ **Autenticación multi-método**: X-API-KEY, Authorization Bearer, cookies
+- ✅ **Validación en múltiples capas**: formato, hash, usuario activo
+- ✅ **Rate limiting por IP y usuario**: previene ataques de fuerza bruta
+- ✅ **Headers de seguridad**: X-Content-Type-Options, X-Frame-Options, etc.
+
+#### 2. Least Privilege (Mínimo Privilegio)
+
+- ✅ **Roles jerárquicos**: ROLE_ADMIN incluye ROLE_USER automáticamente
+- ✅ **Acceso granular**: endpoints específicos requieren roles específicos
+- ✅ **Usuarios inactivos**: verificación de estado activo en cada request
+
+#### 3. Fail Secure (Fallo Seguro)
+
+- ✅ **Default deny**: sin API key válida = acceso denegado
+- ✅ **Excepciones manejadas**: errores de autenticación devuelven 401
+- ✅ **Logging de intentos fallidos**: para auditoría y monitoreo
+
+#### 4. Zero Trust
+
+- ✅ **Verificación en cada request**: no hay sesiones persistentes
+- ✅ **Validación completa**: API key + usuario activo + permisos
+- ✅ **No confianza en headers**: validación rigurosa de todas las entradas
+
+### Comandos de Auditoría y Seguridad
+
+```bash
+# Verificar usuarios activos
+docker exec restaurant_api_php php bin/console doctrine:query:sql "SELECT email, is_active, roles FROM users"
+
+# Verificar intentos de autenticación fallidos (si logging está habilitado)
+docker exec restaurant_api_php tail -f var/log/security.log
+
+# Regenerar todas las API Keys (comando de emergencia)
+docker exec restaurant_api_php php bin/console app:regenerate-all-api-keys
+
+# Auditar permisos de roles
+docker exec restaurant_api_php php bin/console debug:config security access_control
+```
+
+### Configuración de Headers de Seguridad
+
+```nginx
+# docker/nginx/default.conf
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-XSS-Protection "1; mode=block" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+```
+
+### Recomendaciones de Despliegue Seguro
+
+#### Variables de Entorno en Producción
+
+```env
+# Nunca usar estos valores en producción
+APP_SECRET=tu_secret_super_secreto_de_32_chars_minimo_aqui_2024_production
+DATABASE_URL="mysql://db_user:password_super_segura@host:3306/restaurant_api_prod?serverVersion=8.0"
+
+# Configuración CORS estricta para producción
+CORS_ALLOW_ORIGIN=https://tu-frontend-domain.com
+```
+
+#### SSL/TLS Obligatorio
+
+```nginx
+# Redirección HTTPS obligatoria en producción
+server {
+    listen 80;
+    server_name tu-api-domain.com;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name tu-api-domain.com;
+    
+    ssl_certificate /etc/ssl/certs/tu-certificado.crt;
+    ssl_certificate_key /etc/ssl/private/tu-clave-privada.key;
+    
+    # Configuración SSL segura...
+}
+```
+
+#### Rate Limiting Ajustado para Producción
+
+```yaml
+# config/packages/rate_limiter.yaml para producción
+framework:
+    rate_limiter:
+        login_ip:
+            policy: 'sliding_window'
+            limit: 5        # Más estricto en producción
+            interval: '15 minutes'
+            
+        authenticated_user:
+            policy: 'sliding_window'
+            limit: 100      # Ajustar según necesidades reales
+            interval: '1 hour'
+```
+
+---
+
 ## 🐳 Dockerización
 
 ### Dockerfile Optimizado
@@ -1635,6 +1892,11 @@ docker exec restaurant_api_php php bin/console doctrine:database:drop --force
 docker exec restaurant_api_php php bin/console make:migration
 docker exec restaurant_api_php php bin/console doctrine:migrations:migrate
 docker exec restaurant_api_php php bin/console doctrine:schema:validate
+
+# Gestión de usuarios y seguridad
+docker exec restaurant_api_php php bin/console app:create-test-user
+docker exec restaurant_api_php php bin/console app:regenerate-api-key usuario@ejemplo.com
+docker exec restaurant_api_php php bin/console app:update-user-roles usuario@ejemplo.com "ROLE_USER,ROLE_ADMIN"
 
 # Debugging y análisis
 docker exec restaurant_api_php php bin/console debug:router

@@ -94,9 +94,35 @@ docker exec restaurant_api_php composer install
 echo -e "${YELLOW}Ejecutando migraciones de base de datos...${NC}"
 docker exec restaurant_api_php php bin/console doctrine:migrations:migrate -n
 
-# Cargar datos de prueba
+# Cargar datos de prueba (fixtures básicas si existen)
 echo -e "${YELLOW}Cargando datos de prueba...${NC}"
-docker exec restaurant_api_php php bin/console doctrine:fixtures:load -n
+docker exec restaurant_api_php php bin/console doctrine:fixtures:load -n --quiet 2>/dev/null || echo -e "${BLUE}ℹ️ No hay fixtures configuradas, continuando...${NC}"
+
+# Crear usuario administrador de prueba
+echo -e "${YELLOW}Creando usuario administrador de prueba...${NC}"
+USER_OUTPUT=$(docker exec restaurant_api_php php bin/console app:create-test-user 2>/dev/null)
+
+# Extraer la API Key del output del comando
+API_KEY=$(echo "$USER_OUTPUT" | grep -o '[a-f0-9]\{64\}' | head -1)
+
+if [ -n "$API_KEY" ]; then
+    echo -e "${GREEN}✓ Usuario administrador creado exitosamente${NC}"
+    echo -e "${BLUE}   Email: usuario@ejemplo.com${NC}"
+    echo -e "${BLUE}   Roles: ROLE_USER, ROLE_ADMIN${NC}"
+else
+    echo -e "${YELLOW}⚠️ No se pudo crear el usuario (puede que ya exista)${NC}"
+    # Intentar regenerar API key si el usuario ya existe
+    echo -e "${YELLOW}Intentando regenerar API Key del usuario existente...${NC}"
+    REGEN_OUTPUT=$(docker exec restaurant_api_php php bin/console app:regenerate-api-key usuario@ejemplo.com 2>/dev/null)
+    API_KEY=$(echo "$REGEN_OUTPUT" | grep -o '[a-f0-9]\{64\}' | head -1)
+    
+    if [ -n "$API_KEY" ]; then
+        echo -e "${GREEN}✓ API Key regenerada exitosamente${NC}"
+    else
+        echo -e "${RED} No se pudo generar/regenerar la API Key${NC}"
+        API_KEY="EJECUTAR_COMANDO_MANUALMENTE"
+    fi
+fi
 
 # Limpiar cache
 echo -e "${YELLOW}Limpiando cache...${NC}"
@@ -112,10 +138,26 @@ echo -e "${GREEN}      ¡Restaurant API iniciado correctamente!              ${N
 echo -e "${GREEN}===========================================================${NC}"
 echo -e "${BLUE}Acceso a la API:${NC} http://localhost:8080/api"
 echo -e "${BLUE}Documentación:${NC} http://localhost:8080/api/docs"
-echo -e "${BLUE}Base de datos:${NC} localhost:3307 (usuario: root, contraseña: rootpassword)"
-echo -e "${BLUE}Usuario de prueba:${NC} usuario@ejemplo.com"
-echo -e "${BLUE}API Key de prueba:${NC} 58437522a95dd2c7be83c4a87d172f9fe680f5aefae082345747f9bfbc68a52c"
-echo -e "${GREEN}===========================================================${NC}"
-echo -e "${YELLOW}Para detener los servicios:${NC} docker-compose down"
-echo -e "${YELLOW}Para ver los logs:${NC} docker-compose logs -f"
+echo -e "${BLUE}Base de datos:${NC} localhost:3307 (usuario: root, contraseña: 2ZE868Fru!)"
+echo -e ""
+echo -e "${GREEN}🔐 CREDENCIALES DE PRUEBA:${NC}"
+echo -e "${BLUE}   📧 Email:${NC} usuario@ejemplo.com"
+echo -e "${BLUE}   👥 Roles:${NC} ROLE_USER, ROLE_ADMIN"
+echo -e "${BLUE}   🗝️  API Key:${NC} ${API_KEY}"
+echo -e ""
+echo -e "${GREEN}🧪 PRUEBA RÁPIDA DE LA API:${NC}"
+if [ "$API_KEY" != "EJECUTAR_COMANDO_MANUALMENTE" ]; then
+    echo -e "${BLUE}   curl -H \"X-API-KEY: ${API_KEY}\" http://localhost:8080/api/restaurants${NC}"
+else
+    echo -e "${YELLOW}   Primero ejecuta: docker exec restaurant_api_php php bin/console app:create-test-user${NC}"
+fi
+echo -e ""
+echo -e "${GREEN}🛠️  COMANDOS ÚTILES:${NC}"
+echo -e "${BLUE}   📊 Ver contenedores:${NC} docker-compose ps"
+echo -e "${BLUE}   📝 Ver logs:${NC} docker-compose logs -f"
+echo -e "${BLUE}   🛑 Detener servicios:${NC} docker-compose down"
+echo -e "${BLUE}   🔄 Reiniciar:${NC} docker-compose restart"
+echo -e "${BLUE}   🗝️  Regenerar API Key:${NC} docker exec restaurant_api_php php bin/console app:regenerate-api-key usuario@ejemplo.com"
+echo -e "${BLUE}   🧪 Ejecutar tests:${NC} ./run-tests.sh all"
+echo -e "${BLUE}   🧹 Linter:${NC} ./lint.sh"
 echo -e "${GREEN}===========================================================${NC}" 

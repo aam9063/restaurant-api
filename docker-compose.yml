@@ -43,13 +43,9 @@ services:
     ports:
       - "3307:3306"
 
-
 networks:
   restaurant_network:
     driver: bridge
 
 volumes:
-  db_data: 
-###> doctrine/doctrine-bundle ###
-  database_data:
-###< doctrine/doctrine-bundle ###
+  db_data:
