@@ -16,7 +16,7 @@ RUN mkdir -p var/cache var/log && chmod -R 777 var && chown -R www-data:www-data
 
 # BORRA TODOS los .conf anteriores y copia solo el tuyo
 RUN rm -f /etc/nginx/conf.d/*
-COPY ./docker/nginx/app.conf /etc/nginx/conf.d/app.conf
+COPY ./docker/nginx/default.conf /etc/nginx/conf.d/app.conf
 
 # OPCIONAL: fuerza el nginx.conf correcto
 COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
