@@ -178,38 +178,6 @@ curl -H "X-API-KEY: your_api_key" \
 
 ---
 
-## 🚀 Sistema de Caché con Redis
-
-El proyecto utiliza Redis para mejorar el rendimiento mediante caché inteligente:
-
-### Características del Sistema de Caché
-
-- **Caché de búsquedas**: Las búsquedas avanzadas y rápidas se cachean por 15-30 minutos
-- **Caché de usuarios**: Los datos de usuarios (API keys, emails) se cachean por 1 hora
-- **Caché de estadísticas**: Las estadísticas de restaurantes se cachean por 1 hora
-- **Invalidación automática**: La caché se invalida automáticamente cuando los datos cambian
-- **Pools separados**: Diferentes tipos de datos usan pools de Redis separados para mejor organización
-
-### Configuración de Redis
-
-El sistema está configurado con:
-- **Puerto**: 6379 (accesible desde el host)
-- **Persistencia**: Datos persistentes con AOF (Append Only File)
-- **Múltiples bases de datos**: 
-  - Base 0: Caché general de la aplicación
-  - Base 1: Caché de restaurantes
-  - Base 2: Caché de usuarios
-  - Base 3: Caché de búsquedas
-
-### Beneficios de Rendimiento
-
-- Reducción significativa en consultas a la base de datos
-- Respuestas más rápidas para búsquedas frecuentes
-- Mejor experiencia de usuario en operaciones repetitivas
-- Escalabilidad mejorada para múltiples usuarios concurrentes
-
----
-
 ## 🛠️ Comandos Útiles
 
 ### Symfony
@@ -236,27 +204,6 @@ docker-compose logs php
 
 # Acceder a bash del contenedor
 docker exec -it restaurant_api_php sh
-```
-
-### Cache Redis
-
-```bash
-# Ver estadísticas de Redis
-docker exec restaurant_api_redis redis-cli info
-
-# Limpiar toda la caché de Redis
-docker exec restaurant_api_redis redis-cli flushall
-
-# Monitorear comandos en tiempo real
-docker exec restaurant_api_redis redis-cli monitor
-
-# Ver claves almacenadas en caché
-docker exec restaurant_api_redis redis-cli keys "*"
-
-# Limpiar pools específicos de caché
-docker exec restaurant_api_php php bin/console cache:pool:clear cache.restaurants
-docker exec restaurant_api_php php bin/console cache:pool:clear cache.users
-docker exec restaurant_api_php php bin/console cache:pool:clear cache.searches
 ```
 
 ---
@@ -290,29 +237,3 @@ docker-compose ps
 # Ver logs de MySQL
 docker-compose logs database
 ```
-
-#### 4. Redis no funciona
-```bash
-# Verificar que Redis esté corriendo
-docker exec restaurant_api_redis redis-cli ping
-
-# Ver logs de Redis
-docker-compose logs redis
-
-# Reiniciar Redis
-docker-compose restart redis
-```
-
----
-
-
-### Funcionalidades Pendientes
-
-- [ ] **Soft Delete** para restaurantes
-- [ ] **Auditoría** de cambios con historial
-- [x] **Cache** con Redis para mejor rendimiento
-- [ ] **CI/CD Pipeline** con GitHub Actions
-- [ ] **Geolocalización** de restaurantes
-- [ ] **Categorías** y tags para restaurantes
-
----
