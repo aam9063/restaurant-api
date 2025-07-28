@@ -20,10 +20,8 @@ class ErrorController extends AbstractController
             $message = $exception->getMessage();
         }
 
-        // Personalizar mensajes según el código de estado
         $errorData = $this->getErrorData($statusCode, $message, $exception);
 
-        // Si es una petición API, devolver JSON
         if (str_starts_with($request->getPathInfo(), '/api')
             || $request->headers->get('Content-Type') === 'application/json'
             || str_contains($request->headers->get('Accept', ''), 'application/json')) {
@@ -31,7 +29,6 @@ class ErrorController extends AbstractController
             return new JsonResponse($errorData, $statusCode);
         }
 
-        // Para otras peticiones, podrías devolver una vista HTML
         return new JsonResponse($errorData, $statusCode);
     }
 
@@ -44,7 +41,6 @@ class ErrorController extends AbstractController
             'timestamp' => (new \DateTime())->format('Y-m-d H:i:s'),
         ];
 
-        // Agregar detalles específicos según el código de estado
         switch ($statusCode) {
             case Response::HTTP_BAD_REQUEST:
                 $errorData['message'] = 'Solicitud incorrecta';
@@ -98,7 +94,6 @@ class ErrorController extends AbstractController
                 $errorData['details'] = $message ?: 'Error no especificado';
         }
 
-        // En desarrollo, agregar información adicional del error
         if ($_ENV['APP_ENV'] === 'dev') {
             $errorData['debug'] = [
                 'exception_class' => get_class($exception),

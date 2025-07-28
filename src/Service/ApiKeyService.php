@@ -5,8 +5,8 @@ namespace App\Service;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 
-/**
- * Servicio para gestión segura de API Keys
+/*
+  Servicio para gestión segura de API Keys
  */
 class ApiKeyService
 {
@@ -37,8 +37,8 @@ class ApiKeyService
         return $apiKey;
     }
 
-    /**
-     * Hashea una API Key para almacenamiento seguro
+    /*
+      Hashea una API Key para almacenamiento seguro
      */
     public function hashApiKey(string $apiKey): string
     {
@@ -49,16 +49,16 @@ class ApiKeyService
         ]);
     }
 
-    /**
-     * Verifica una API Key contra su hash
+    /*
+      Verifica una API Key contra su hash
      */
     public function verifyApiKey(string $apiKey, string $hashedApiKey): bool
     {
         return password_verify($apiKey, $hashedApiKey);
     }
 
-    /**
-     * Regenera la API Key de un usuario
+    /*
+      Regenera la API Key de un usuario
      */
     public function regenerateUserApiKey(User $user): string
     {
@@ -71,8 +71,8 @@ class ApiKeyService
         return $newApiKey; // Retorna la key sin hashear para mostrar al usuario
     }
 
-    /**
-     * Valida el formato de una API Key
+    /*
+      Valida el formato de una API Key
      */
     public function isValidApiKeyFormat(string $apiKey): bool
     {

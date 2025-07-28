@@ -339,8 +339,8 @@ class RestaurantSearchController extends AbstractController
         ]);
     }
 
-    /**
-     * Serializar entidad Restaurant para respuesta JSON.
+    /*
+      Serializar entidad Restaurant para respuesta JSON.
      */
     private function serializeRestaurant(Restaurant $restaurant): array
     {

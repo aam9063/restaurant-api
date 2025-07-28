@@ -55,9 +55,9 @@ class CreateTestUserCommand extends Command
         $user = new User();
         $user->setEmail('usuario@ejemplo.com');
         $user->setName('Usuario de Prueba');
-        $user->setApiKey($hashedApiKey); // Almacenar hasheada
+        $user->setApiKey($hashedApiKey);
         $user->setIsActive(true);
-        $user->setRoles(['ROLE_USER', 'ROLE_ADMIN']); // Usuario con permisos de admin
+        $user->setRoles(['ROLE_USER', 'ROLE_ADMIN']);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
@@ -66,7 +66,7 @@ class CreateTestUserCommand extends Command
         $io->info(sprintf('Email: %s', $user->getEmail()));
         $io->info(sprintf('Roles: %s', implode(', ', $user->getRoles())));
         $io->warning('API Key generada (guárdala en lugar seguro):');
-        $io->text($apiKey); // Mostrar solo una vez
+        $io->text($apiKey);
 
         return Command::SUCCESS;
     }

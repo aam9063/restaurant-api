@@ -48,9 +48,8 @@ class UpdateUserRolesCommand extends Command
             return Command::FAILURE;
         }
 
-        // Parse roles
         $roles = array_map('trim', explode(',', $rolesString));
-        $roles = array_filter($roles); // Remove empty values
+        $roles = array_filter($roles);
 
         if (empty($roles)) {
             $io->error('Debe especificar al menos un rol.');

@@ -7,8 +7,8 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<Restaurant>
+/*
+  @extends ServiceEntityRepository<Restaurant>
  */
 class RestaurantRepository extends ServiceEntityRepository
 {
@@ -17,8 +17,8 @@ class RestaurantRepository extends ServiceEntityRepository
         parent::__construct($registry, Restaurant::class);
     }
 
-    /**
-     * Buscar restaurantes por nombre.
+    /*
+      Buscar restaurantes por nombre.
      */
     public function findByName(string $name): array
     {
@@ -30,8 +30,8 @@ class RestaurantRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /**
-     * Buscar restaurantes por ciudad en la dirección.
+    /*
+      Buscar restaurantes por ciudad en la dirección.
      */
     public function findByCity(string $city): array
     {
@@ -43,8 +43,8 @@ class RestaurantRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /**
-     * Contar total de restaurantes.
+    /*
+      Contar total de restaurantes.
      */
     public function countTotal(): int
     {
@@ -54,8 +54,8 @@ class RestaurantRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
-    /**
-     * Búsqueda avanzada con múltiples criterios.
+    /*
+      Búsqueda avanzada con múltiples criterios.
      */
     public function findByAdvancedSearch(array $criteria = []): array
     {
@@ -120,8 +120,8 @@ class RestaurantRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
-    /**
-     * Búsqueda avanzada con paginación.
+    /*
+      Búsqueda avanzada con paginación.
      */
     public function findByAdvancedSearchWithPagination(array $criteria = [], int $page = 1, int $limit = 10): array
     {
@@ -157,8 +157,8 @@ class RestaurantRepository extends ServiceEntityRepository
         ];
     }
 
-    /**
-     * Aplicar filtros a un QueryBuilder.
+    /*
+      Aplicar filtros a un QueryBuilder.
      */
     private function applyFilters(QueryBuilder $qb, array $criteria): void
     {
@@ -211,8 +211,8 @@ class RestaurantRepository extends ServiceEntityRepository
         }
     }
 
-    /**
-     * Aplicar ordenamiento a un QueryBuilder.
+    /*
+      Aplicar ordenamiento a un QueryBuilder.
      */
     private function applyOrderBy(QueryBuilder $qb, array $criteria): void
     {
@@ -258,8 +258,8 @@ class RestaurantRepository extends ServiceEntityRepository
         }
     }
 
-    /**
-     * Buscar restaurantes similares (por nombre o dirección).
+    /*
+      Buscar restaurantes similares (por nombre o dirección).
      */
     public function findSimilar(Restaurant $restaurant, int $limit = 5): array
     {
@@ -309,8 +309,8 @@ class RestaurantRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /**
-     * Método unificado para búsqueda avanzada con formato consistente.
+    /*
+      Método unificado para búsqueda avanzada con formato consistente.
      */
     public function findWithAdvancedSearch(
         ?string $search = null,
@@ -352,8 +352,8 @@ class RestaurantRepository extends ServiceEntityRepository
         ];
     }
 
-    /**
-     * Búsqueda rápida en nombre, dirección y teléfono.
+    /*
+      Búsqueda rápida en nombre, dirección y teléfono.
      */
     public function quickSearch(string $query, int $limit = 10): array
     {
@@ -376,16 +376,16 @@ class RestaurantRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    /**
-     * Alias para findSimilar para compatibilidad con tests.
+    /*
+      Alias para findSimilar para compatibilidad con tests.
      */
     public function findSimilarRestaurants(Restaurant $restaurant, int $limit = 5): array
     {
         return $this->findSimilar($restaurant, $limit);
     }
 
-    /**
-     * Obtener estadísticas de restaurantes.
+    /*
+      Obtener estadísticas de restaurantes.
      */
     public function getStatistics(): array
     {

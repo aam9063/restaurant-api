@@ -9,8 +9,8 @@ use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
-/**
- * @extends ServiceEntityRepository<User>
+/*
+  @extends ServiceEntityRepository<User>
  */
 class UserRepository extends ServiceEntityRepository implements UserProviderInterface
 {
@@ -19,8 +19,8 @@ class UserRepository extends ServiceEntityRepository implements UserProviderInte
         parent::__construct($registry, User::class);
     }
 
-    /**
-     * Buscar usuario por API Key.
+    /*
+      Buscar usuario por API Key.
      */
     public function findByApiKey(string $apiKey): ?User
     {
@@ -33,8 +33,8 @@ class UserRepository extends ServiceEntityRepository implements UserProviderInte
             ->getOneOrNullResult();
     }
 
-    /**
-     * Buscar usuario por API Key verificando hash
+    /*
+     Buscar usuario por API Key verificando hash
      */
     public function findByApiKeyHash(string $plainApiKey): ?User
     {

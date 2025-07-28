@@ -25,8 +25,5 @@ class UserChecker implements UserCheckerInterface
         if (!$user instanceof User) {
             return;
         }
-
-        // Aquí puedes agregar validaciones adicionales después de la autenticación
-        // Por ejemplo, verificar si el usuario necesita cambiar su API Key
     }
 }
