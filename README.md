@@ -156,8 +156,8 @@ La API implementa un sistema de rate limiting inteligente que aplica diferentes 
 
 ### Usuario de Prueba
 
-**Email:** `usuario@ejemplo.com`  
-**API Key:** `8d0ec4ee8bc655269a7f25b50c19196de68826b7ce9d250b38535b4b04055e65`
+**Email de Usuario Admin:** `usuario@ejemplo.com`  
+**API Key:** `d7a24e347302581cf13ae38ed58efd62ff965f828a2c0ea619be48fb7fb103c9`
 
 ### Ejemplos con cURL
 
