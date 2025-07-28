@@ -1,6 +1,7 @@
-# Etapa 1: Build de dependencias PHP
-FROM php:8.3-fpm-alpine as symfony_php
+# Etapa única: PHP-FPM + Nginx para Symfony en Railway
+FROM php:8.3-fpm-alpine
 
+# Instala dependencias del sistema y Nginx
 RUN apk add --no-cache \
     acl \
     fcgi \
@@ -12,6 +13,7 @@ RUN apk add --no-cache \
     npm \
     nginx
 
+# Instala extensiones PHP necesarias
 RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
     && apk add --no-cache \
         freetype-dev \
@@ -30,33 +32,33 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
     && docker-php-ext-enable apcu opcache \
     && apk del .build-deps
 
-# Composer
+# Instala Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# Copia el código completo
+# Copia el código completo de la app
 COPY . .
 
-# (Debug) Verifica que está el public/index.php
+# (Debug) Lista los archivos públicos, útil para ver en logs de Railway
 RUN ls -l /var/www/html/public
 
-# Instala dependencias PHP
+# Instala dependencias PHP (solo producción)
 RUN composer install --prefer-dist --no-dev --no-scripts --no-progress --no-interaction --optimize-autoloader
 
-# Permisos
+# Configura permisos
 RUN mkdir -p var/cache var/log \
     && chmod -R 777 var \
     && chown -R www-data:www-data var
 
-# Nginx config
+# Elimina cualquier conf anterior de nginx (¡importante!)
+RUN rm -f /etc/nginx/conf.d/*
+
+# Copia tu archivo nginx ya corregido (sin bloques globales ni duplicidad)
 COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 
-# Quita el default.conf que mete la imagen base de nginx
-RUN rm -f /etc/nginx/conf.d/default.conf.default || true
-
-# Exponer el puerto 8080
+# Expón el puerto 8080 para Railway
 EXPOSE 8080
 
-# Lanzar ambos procesos: PHP-FPM y NGINX
+# Lanza ambos servicios en primer plano
 CMD php-fpm & nginx -g "daemon off;"
