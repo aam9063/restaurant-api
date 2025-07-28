@@ -34,6 +34,28 @@ class UserRepository extends ServiceEntityRepository implements UserProviderInte
     }
 
     /**
+     * Buscar usuario por API Key verificando hash
+     */
+    public function findByApiKeyHash(string $plainApiKey): ?User
+    {
+        // Obtener todos los usuarios activos
+        $users = $this->createQueryBuilder('u')
+            ->andWhere('u.isActive = :active')
+            ->setParameter('active', true)
+            ->getQuery()
+            ->getResult();
+
+        // Verificar hash para cada usuario
+        foreach ($users as $user) {
+            if (password_verify($plainApiKey, $user->getApiKey())) {
+                return $user;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Buscar usuario por email.
      */
     public function findByEmail(string $email): ?User

@@ -49,8 +49,8 @@ APP_ENV=dev
 APP_SECRET=e8b5f7c2d9a4e6f1b8c3d7e9f2a5b8c1d4e7f0a3b6c9e2f5a8b1d4e7f0a3b6c9
 
 # Base de Datos
-DATABASE_URL="mysql://root:rootpassword@database:3306/restaurant_api?serverVersion=8.0.32"
-MYSQL_ROOT_PASSWORD=rootpassword
+DATABASE_URL="mysql://root:2ZE868Fru!@database:3306/restaurant_api?serverVersion=8.0.32"
+MYSQL_ROOT_PASSWORD=2ZE868Fru!
 
 # Configuración CORS
 CORS_ALLOW_ORIGIN=^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$

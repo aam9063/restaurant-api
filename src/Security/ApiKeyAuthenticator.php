@@ -2,6 +2,7 @@
 
 namespace App\Security;
 
+use App\Service\ApiKeyService;
 use App\Users\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,7 +18,8 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 class ApiKeyAuthenticator extends AbstractAuthenticator
 {
     public function __construct(
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
+        private ApiKeyService $apiKeyService
     ) {
     }
 
@@ -40,7 +42,12 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
             throw new CustomUserMessageAuthenticationException('No API key provided');
         }
 
-        $user = $this->userRepository->findByApiKey($apiKey);
+        // Validar formato de API key antes de buscar en BD
+        if (!$this->apiKeyService->isValidApiKeyFormat($apiKey)) {
+            throw new CustomUserMessageAuthenticationException('Invalid API key format');
+        }
+
+        $user = $this->userRepository->findByApiKeyHash($apiKey);
 
         if (!$user) {
             throw new CustomUserMessageAuthenticationException('Invalid API key');

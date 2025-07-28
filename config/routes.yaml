@@ -1,5 +1,12 @@
 controllers:
     resource:
-        path: ../src/Controller/
-        namespace: App\Controller
+        path: ../src/
+        namespace: App
     type: attribute
+    exclude: 
+        - '../src/Entity/'
+        - '../src/DependencyInjection/'
+        - '../src/Kernel.php'
+        - '../src/DataFixtures/'
+        - '../src/RateLimiting/'
+        - '../src/Security/'

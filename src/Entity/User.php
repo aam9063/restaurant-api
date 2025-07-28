@@ -65,7 +65,7 @@ class User implements UserInterface
     #[Groups(['user:read', 'user:write'])]
     private ?string $name = null;
 
-    #[ORM\Column(length: 64, unique: true)]
+    #[ORM\Column(length: 255, unique: true)]
     #[Groups(['user:read'])]
     private ?string $apiKey = null;
 
