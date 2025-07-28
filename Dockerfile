@@ -1,26 +1,16 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.3-cli
 
-RUN apk add --no-cache \
-    acl fcgi file gettext git gnu-libiconv nodejs npm nginx
+WORKDIR /app
 
-# ...instalación PHP...
-
+# Instala Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www/html
+# Copia tu proyecto
 COPY . .
 
-RUN composer install --prefer-dist --no-dev --no-scripts --no-progress --no-interaction --optimize-autoloader
+# Instala dependencias
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-RUN mkdir -p var/cache var/log && chmod -R 777 var && chown -R www-data:www-data var
+EXPOSE 8000
 
-# BORRA TODOS los .conf anteriores y copia solo el tuyo
-RUN rm -f /etc/nginx/conf.d/*
-COPY ./docker/nginx/default.conf /etc/nginx/conf.d/app.conf
-
-# OPCIONAL: fuerza el nginx.conf correcto
-COPY ./docker/nginx/nginx.conf /etc/nginx/nginx.conf
-
-EXPOSE 8080
-
-CMD php-fpm & nginx -g "daemon off;"
+CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
