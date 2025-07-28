@@ -1,6 +1,6 @@
-FROM php:8.3-fpm-alpine
+# Etapa 1: Build de dependencias PHP
+FROM php:8.3-fpm-alpine as symfony_php
 
-# Instalar dependencias del sistema
 RUN apk add --no-cache \
     acl \
     fcgi \
@@ -9,9 +9,9 @@ RUN apk add --no-cache \
     git \
     gnu-libiconv \
     nodejs \
-    npm
+    npm \
+    nginx
 
-# Instalar extensiones de PHP necesarias para Symfony
 RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
     && apk add --no-cache \
         freetype-dev \
@@ -30,29 +30,33 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
     && docker-php-ext-enable apcu opcache \
     && apk del .build-deps
 
-# Instalar Composer
+# Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Configurar php.ini
-RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
-    && sed -i 's/memory_limit = 128M/memory_limit = 512M/g' "$PHP_INI_DIR/php.ini"
 
 WORKDIR /var/www/html
 
-# Copiar TODO el código fuente al contenedor
+# Copia el código completo
 COPY . .
 
-# (Opcional, debug): Mostrar contenido de la carpeta pública
+# (Debug) Verifica que está el public/index.php
 RUN ls -l /var/www/html/public
 
-# Instalar dependencias de Composer (producción, optimizado)
-RUN git config --global --add safe.directory /var/www/html \
-    && composer install --prefer-dist --no-dev --no-scripts --no-progress --no-interaction --optimize-autoloader
+# Instala dependencias PHP
+RUN composer install --prefer-dist --no-dev --no-scripts --no-progress --no-interaction --optimize-autoloader
 
-# Configurar permisos
+# Permisos
 RUN mkdir -p var/cache var/log \
     && chmod -R 777 var \
     && chown -R www-data:www-data var
 
-EXPOSE 9000
-CMD ["php-fpm"]
+# Nginx config
+COPY ./docker/nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Quita el default.conf que mete la imagen base de nginx
+RUN rm -f /etc/nginx/conf.d/default.conf.default || true
+
+# Exponer el puerto 8080
+EXPOSE 8080
+
+# Lanzar ambos procesos: PHP-FPM y NGINX
+CMD php-fpm & nginx -g "daemon off;"
