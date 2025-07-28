@@ -1,6 +1,6 @@
 FROM php:8.3-fpm-alpine
 
-# Instalar dependencias
+# Instalar dependencias del sistema
 RUN apk add --no-cache \
     acl \
     fcgi \
@@ -11,7 +11,7 @@ RUN apk add --no-cache \
     nodejs \
     npm
 
-# Instalar extensiones de PHP
+# Instalar extensiones de PHP necesarias para Symfony
 RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
     && apk add --no-cache \
         freetype-dev \
@@ -39,22 +39,20 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
 
 WORKDIR /var/www/html
 
-# Copiar composer files primero para cache layer
-COPY composer.json composer.lock ./
+# Copiar TODO el código fuente al contenedor
+COPY . .
 
-# Arreglar problema de git ownership y instalar dependencias
+# (Opcional, debug): Mostrar contenido de la carpeta pública
+RUN ls -l /var/www/html/public
+
+# Instalar dependencias de Composer (producción, optimizado)
 RUN git config --global --add safe.directory /var/www/html \
     && composer install --prefer-dist --no-dev --no-scripts --no-progress --no-interaction --optimize-autoloader
-
-# Copiar el resto de archivos de la aplicación
-COPY . .
 
 # Configurar permisos
 RUN mkdir -p var/cache var/log \
     && chmod -R 777 var \
     && chown -R www-data:www-data var
 
-# Exponer puerto
 EXPOSE 9000
-
-CMD ["php-fpm"] 
+CMD ["php-fpm"]
