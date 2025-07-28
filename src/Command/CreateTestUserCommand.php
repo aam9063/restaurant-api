@@ -3,7 +3,6 @@
 namespace App\Command;
 
 use App\Entity\User;
-use App\Service\ApiKeyService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,12 +17,10 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class CreateTestUserCommand extends Command
 {
     private EntityManagerInterface $entityManager;
-    private ApiKeyService $apiKeyService;
 
-    public function __construct(EntityManagerInterface $entityManager, ApiKeyService $apiKeyService)
+    public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
-        $this->apiKeyService = $apiKeyService;
         parent::__construct();
     }
 
@@ -47,17 +44,13 @@ class CreateTestUserCommand extends Command
             return Command::SUCCESS;
         }
 
-        // Generar API Key segura
-        $apiKey = $this->apiKeyService->generateApiKey();
-        $hashedApiKey = $this->apiKeyService->hashApiKey($apiKey);
-
         // Crear nuevo usuario
         $user = new User();
         $user->setEmail('usuario@ejemplo.com');
         $user->setName('Usuario de Prueba');
-        $user->setApiKey($hashedApiKey);
         $user->setIsActive(true);
         $user->setRoles(['ROLE_USER', 'ROLE_ADMIN']);
+        // La API Key se genera automáticamente en el constructor de User
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
@@ -66,7 +59,7 @@ class CreateTestUserCommand extends Command
         $io->info(sprintf('Email: %s', $user->getEmail()));
         $io->info(sprintf('Roles: %s', implode(', ', $user->getRoles())));
         $io->warning('API Key generada (guárdala en lugar seguro):');
-        $io->text($apiKey);
+        $io->text($user->getApiKey());
 
         return Command::SUCCESS;
     }

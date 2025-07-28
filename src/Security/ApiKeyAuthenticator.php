@@ -47,7 +47,7 @@ class ApiKeyAuthenticator extends AbstractAuthenticator
             throw new CustomUserMessageAuthenticationException('Invalid API key format');
         }
 
-        $user = $this->userRepository->findByApiKeyHash($apiKey);
+        $user = $this->userRepository->findByApiKey($apiKey);
 
         if (!$user) {
             throw new CustomUserMessageAuthenticationException('Invalid API key');
