@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: restaurant_api_php
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html
+    environment:
+      APP_ENV: prod
+    depends_on:
+      - database
+    networks:
+      - restaurant_network
+
+  nginx:
+    image: nginx:alpine
+    container_name: restaurant_api_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - restaurant_network
+
+  database:
+    image: mysql:8.0
+    container_name: restaurant_api_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: restaurant_api
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: restaurant_api_user
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - restaurant_network
+
+networks:
+  restaurant_network:
+    driver: bridge
+
+volumes:
+  db_data:
