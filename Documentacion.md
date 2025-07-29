@@ -335,11 +335,11 @@ Marca cada item cuando lo completes:
 
 ### 🔧 Script de Setup Automatizado
 
-Si prefieres un setup completamente automatizado, crea este script:
+Si prefieres un setup completamente automatizado, usa el script `start.sh` incluido en el proyecto:
 
 ```bash
 #!/bin/bash
-# setup.sh - Script de configuración automática
+# start.sh - Script de configuración automática
 
 echo "🚀 Configurando Restaurant API..."
 
@@ -412,15 +412,16 @@ echo ""
 echo "✅ ¡Setup completado exitosamente!"
 echo ""
 echo "📍 URLs importantes:"
-echo "   🌐 API Base: http://localhost:8080/api"
-echo "   📖 Documentación: http://localhost:8080/api/docs"
+echo "   🌐 API Base (Local): http://localhost:8080/api"
+echo "   🌐 API Base (Producción): http://148.230.114.210:8080/api"
+echo "   📖 Documentación (Local): http://localhost:8080/api/docs"
+echo "   📖 Documentación (Producción): http://148.230.114.210:8080/api/docs"
 echo ""
-echo "🔑 Usuario de prueba creado:"
-echo "   📧 Email: admin@test.com"
-echo "   🗝️ API Key: $API_KEY"
+echo "🔑 API Key de producción para pruebas:"
+echo "   🗝️ 0fb2e9fa20ef19ace0679b112804f6815bb7d0925c5086e17d5c6f2bda18f164"
 echo ""
-echo "🧪 Comando de prueba:"
-echo "   curl -H \"X-API-KEY: $API_KEY\" http://localhost:8080/api/restaurants"
+echo "🧪 Comando de prueba en producción:"
+echo "   curl -H \"X-API-KEY: 0fb2e9fa20ef19ace0679b112804f6815bb7d0925c5086e17d5c6f2bda18f164\" http://148.230.114.210:8080/api/restaurants"
 echo ""
 echo "🎉 ¡Listo para desarrollar!"
 ```
@@ -429,10 +430,10 @@ echo "🎉 ¡Listo para desarrollar!"
 
 ```bash
 # Hacer ejecutable
-chmod +x setup.sh
+chmod +x start.sh
 
 # Ejecutar
-./setup.sh
+./start.sh
 ```
 
 ---

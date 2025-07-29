@@ -128,9 +128,26 @@ composer cs-fix
 
 La documentación completa de la API está disponible en:
 
-- **Swagger UI:** http://localhost:8080/api/docs
-- **OpenAPI JSON:** http://localhost:8080/api/docs.json
-- **OpenAPI YAML:** http://localhost:8080/api/docs.yaml
+- **Swagger UI (Producción):** http://148.230.114.210:8080/api/docs
+- **OpenAPI JSON:** http://148.230.114.210:8080/api/docs.json
+- **OpenAPI YAML:** http://148.230.114.210:8080/api/docs.yaml
+
+Para autenticarte en Swagger UI, utiliza la siguiente API Key:
+```
+0fb2e9fa20ef19ace0679b112804f6815bb7d0925c5086e17d5c6f2bda18f164
+```
+
+### Ejemplos con cURL
+
+```bash
+# Listar restaurantes (ejemplo con API Key de producción)
+curl -H "X-API-KEY: 0fb2e9fa20ef19ace0679b112804f6815bb7d0925c5086e17d5c6f2bda18f164" \
+     http://148.230.114.210:8080/api/restaurants
+
+# Búsqueda avanzada
+curl -H "X-API-KEY: 0fb2e9fa20ef19ace0679b112804f6815bb7d0925c5086e17d5c6f2bda18f164" \
+     "http://148.230.114.210:8080/api/restaurants/search?search=pizza&order_by=created_at&order_direction=DESC"
+```
 
 ---
 
